@@ -1,6 +1,5 @@
 #include <stdio.h>
 
-int main() {
-  printf("ethc\n");
-  return 0;
+void say_hello() {
+  printf("hello!\n");
 }
