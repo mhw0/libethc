@@ -16,6 +16,11 @@ set(ETHC_SOURCE_FILES src/main.c)
 
 add_library(ethc SHARED ${ETHC_SOURCE_FILES})
 
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND DEFINED BUILD_ETHC_TESTS)
+  enable_testing()
+  add_subdirectory(test)
+endif()
+
 target_link_libraries(ethc ${GLIB_LIBRARIES} ${GMP_LIBRARIES})
 target_include_directories(ethc PRIVATE include/)
 
