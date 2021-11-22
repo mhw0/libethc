@@ -5,23 +5,24 @@ cmake_minimum_required(VERSION 3.21)
 include(GNUInstallDirs)
 
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(GLIB REQUIRED glib-2.0)
 pkg_check_modules(GMP REQUIRED gmp)
 
-include_directories(${GLIB_INCLUDE_DIRS} ${GMP_INCLUDE_DIRS})
-link_directories(${GLIB_LIBRARY_DIRS} ${GMP_LIBRARY_DIRS})
-add_definitions(${GLIB_CFLAGS_OTHER} ${GMP_CFLAGS_OTHER})
+include_directories(${GMP_INCLUDE_DIRS})
+link_directories(${GMP_LIBRARY_DIRS})
+add_definitions(${GMP_CFLAGS_OTHER})
 
-set(ETHC_SOURCE_FILES src/main.c)
+set(ETHC_SOURCE_FILES src/keccak256.c)
 
 add_library(ethc SHARED ${ETHC_SOURCE_FILES})
 
-if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND DEFINED BUILD_ETHC_TESTS)
+if(DEFINED BUILD_ETHC_TESTS)
   enable_testing()
   add_subdirectory(test)
 endif()
 
-target_link_libraries(ethc ${GLIB_LIBRARIES} ${GMP_LIBRARIES})
+add_subdirectory(src/keccak256)
+
+target_link_libraries(ethc ${GMP_LIBRARIES})
 target_include_directories(ethc PRIVATE include/)
 
 # install the dylib

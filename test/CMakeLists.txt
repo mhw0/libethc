@@ -3,22 +3,15 @@ project(ethc-run-tests)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GLIB REQUIRED glib-2.0)
 
-include_directories(${GLIB_INCLUDE_DIRS})
-link_directories(${GLIB_LIBRARY_DIRS})
-add_definitions(${GLIB_CFLAGS_OTHER})
+set(TEST_SOURCE_FILES run-tests.c)
 
-add_test(NAME ethc-run-tests COMMAND ethc-run-tests)
+add_test(NAME ${PROJECT_NAME} COMMAND ${PROJECT_NAME})
+add_executable(${PROJECT_NAME} ${TEST_SOURCE_FILES})
 
-add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND}
-  --force-new-ctest-process
-  --verbose
-  --output-on-failure
-  --progress
-)
+set(TEST_INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/include ${GLIB_INCLUDE_DIRS})
 
-include_directories(${CMAKE_SOURCE_DIR}/include)
+target_include_directories(
+  ${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${TEST_INCLUDE_DIRECTORIES}>")
+target_link_directories(${PROJECT_NAME} PUBLIC ${GLIB_LIBRARY_DIRS})
 
-add_executable(ethc-run-tests run-tests.c)
-
-target_link_libraries(ethc-run-tests ethc)
-target_link_libraries(ethc-run-tests ${GLIB_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${CMAKE_PROJECT_NAME} ${GLIB_LIBRARIES})
