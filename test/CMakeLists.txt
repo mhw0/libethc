@@ -3,7 +3,7 @@ project(ethc-run-tests)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(CMOCKA REQUIRED cmocka)
 
-set(TEST_SOURCE_FILES run-tests.c)
+set(TEST_SOURCE_FILES run-tests.c test-eth-keccak256.c)
 
 add_test(NAME ${PROJECT_NAME} COMMAND ${PROJECT_NAME})
 add_executable(${PROJECT_NAME} ${TEST_SOURCE_FILES})

@@ -1,14 +1,10 @@
-#include <locale.h>
-#include <glib.h>
-#include <ethc.h>
-
-static void say_hello_test_func() { }
+#include "test.h"
 
 int main(int argc, char *argv[]) {
-  setlocale (LC_ALL, "");
-  g_test_init (&argc, &argv, NULL);
+  const struct CMUnitTest tests[] = {
+    cmocka_unit_test(test_eth_keccak256)
+  };
 
-  g_test_add_func("/say_hello", say_hello_test_func);
-
-  return g_test_run();
+  cmocka_set_message_output(CM_OUTPUT_TAP);
+  return cmocka_run_group_tests (tests, NULL,  NULL);
 }
