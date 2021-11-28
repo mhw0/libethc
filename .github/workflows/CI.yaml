@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches:
+     - main
+  pull_request:
+    branches:
+     - main
+     
+jobs:
+  build-macos:
+    runs-on: macos-10.15
+    steps:
+      - uses: actions/checkout@v2
+      - name: Envinfo
+        run: npx envinfo
+      - uses: actions/checkout@v2
+        with:
+          repository: zorgnax/libtap
+          path: libtap
+      - name: Install libtap
+        run: |
+          cd libtap && make && sudo make install
+          pkg-config --cflags --libs tap
+      - name: Build
+        run: |
+            mkdir build
+            cd build && cmake .. -DBUILD_ETHC_TESTS=ON
+            make
+            ls -lh
+      - name: Test
+        run: |
+          cd build
+          make test ARGS="-V"
+  build-ubuntu:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Envinfo
+        run: npx envinfo
+      - uses: actions/checkout@v2
+        with:
+          repository: zorgnax/libtap
+          path: libtap
+      - name: Install libtap
+        run: |
+          cd libtap && make && sudo make install
+          pkg-config --cflags --libs tap
+      - name: Build
+        run: |
+          mkdir build
+          cd build && cmake -DBUILD_ETHC_TESTS=ON ..
+          make
+          ls -lh
+      - name: Test
+        run: |
+          cd build
+          make test ARGS="-V"
+
