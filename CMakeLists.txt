@@ -11,11 +11,15 @@ include_directories(${GMP_INCLUDE_DIRS})
 link_directories(${GMP_LIBRARY_DIRS})
 add_definitions(${GMP_CFLAGS_OTHER})
 
-set(ETHC_SOURCE_FILES src/keccak256.c)
+set(ETHC_SOURCE_FILES src/keccak256.c src/hex.c)
 
 add_library(ethc SHARED ${ETHC_SOURCE_FILES})
 
-if(DEFINED BUILD_ETHC_TESTS)
+set_target_properties(ethc PROPERTIES C_STANDARD 99)
+
+option(ENABLE_TESTING "Enable testing" ON)
+
+if(DEFINED ENABLE_TESTING)
   enable_testing()
   add_subdirectory(test)
 endif()
