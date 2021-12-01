@@ -4,9 +4,19 @@ on:
   push:
     branches:
      - main
+    paths:
+    - 'src/**'
+    - 'include/**'
+    - 'test/**'
+    - 'CMakeLists.txt'
   pull_request:
     branches:
      - main
+    paths:
+    - 'src/**'
+    - 'include/**'
+    - 'test/**'
+    - 'CMakeLists.txt'
      
 jobs:
   build-macos:
@@ -26,7 +36,7 @@ jobs:
       - name: Build
         run: |
             mkdir build
-            cd build && cmake .. -DBUILD_ETHC_TESTS=ON
+            cd build && cmake -DENABLE_TESTING=ON ..
             make
             ls -lh
       - name: Test
@@ -50,7 +60,7 @@ jobs:
       - name: Build
         run: |
           mkdir build
-          cd build && cmake -DBUILD_ETHC_TESTS=ON ..
+          cd build && cmake -DENABLE_TESTING=ON ..
           make
           ls -lh
       - name: Test
