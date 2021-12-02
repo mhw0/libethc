@@ -1,5 +1,4 @@
 #include <ethc/hex.h>
-#include <stdio.h>
 #include <string.h> // strncmp
 
 int eth_is_hex_str(const char *hexstr, size_t len) {
@@ -23,6 +22,10 @@ char *eth_hex_pad_left(const char *hexstr, size_t hexstr_len, size_t pad_len) {
     return NULL;
 
   new_hexstr = malloc(hexstr_len + pad_len + 1);
+
+  if(!new_hexstr)
+    return NULL;
+
   memcpy(new_hexstr, hexstr, 2);
   memset(new_hexstr + 2, '0', pad_len);
   memcpy(new_hexstr + 2 + pad_len, hexstr + 2, hexstr_len - 2);
@@ -38,6 +41,10 @@ char *eth_hex_pad_right(const char *hexstr, size_t hexstr_len, size_t pad_len) {
     return NULL;
 
   new_hexstr = malloc(hexstr_len + pad_len + 1);
+
+  if(!new_hexstr)
+    return NULL;
+
   memcpy(new_hexstr, hexstr, hexstr_len);
   memset(new_hexstr + hexstr_len, '0', pad_len);
   new_hexstr[hexstr_len + pad_len] = '\0';
