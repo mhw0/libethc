@@ -17,7 +17,7 @@ void test_eth_is_hex_str(void) {
   ok(eth_is_hex_str(inp3, strlen(inp3)) == 1);
 
   const char *inp4 = "0XFFFF00";
-  ok(eth_is_hex_str(inp4, strlen(inp4)) == 0);
+  ok(eth_is_hex_str(inp4, strlen(inp4)) == 1);
 }
 
 void test_eth_hex_pad_left(void) {

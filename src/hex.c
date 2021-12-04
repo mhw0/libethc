@@ -1,8 +1,9 @@
 #include <ethc/hex.h>
-#include <string.h> // strncmp
+#include <string.h> // strncasecmp
 
 int eth_is_hex_str(const char *hexstr, size_t len) {
-  if (!hexstr || strncmp(hexstr, "0x", 2) != 0)
+  /* FIXME: `strncasecmp` is not part of the C standard. On non-unix systems this will cause a compilation error */
+  if (!hexstr || strncasecmp(hexstr, "0x", 2) != 0)
     return 0;
 
   for (size_t i = 2; i < len; i++) {
