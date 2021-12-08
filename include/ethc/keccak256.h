@@ -1,9 +1,8 @@
 #ifndef ETHC_KECCAK256_H
 #define ETHC_KECCAK256_H
-#include <KeccakHash.h>
+#include <stddef.h>
+#include <stdint.h>
 
-typedef HashReturn KeccakHashReturn;
-
-KeccakHashReturn eth_keccak256(const char *input, unsigned char *output);
+int eth_keccak256(const uint8_t *data, size_t len, uint8_t *out);
 
 #endif
