@@ -1,7 +1,7 @@
 #include <ethc/hex.h>
 #include <string.h> // strncasecmp
 
-int eth_is_hex_str(const char *hexstr, size_t len) {
+int eth_is_hexstr(const char *hexstr, size_t len) {
   /* FIXME: `strncasecmp` is not part of the C standard. On non-unix systems this will cause a compilation error */
   if (!hexstr || strncasecmp(hexstr, "0x", 2) != 0)
     return 0;
@@ -16,10 +16,10 @@ int eth_is_hex_str(const char *hexstr, size_t len) {
   return 1;
 }
 
-char *eth_hex_pad_left(const char *hexstr, size_t hexstr_len, size_t pad_len) {
+char *eth_hexstr_pad_left(const char *hexstr, size_t hexstr_len, size_t pad_len) {
   char *new_hexstr;
 
-  if (!hexstr || !eth_is_hex_str(hexstr, hexstr_len))
+  if (!hexstr || !eth_is_hexstr(hexstr, hexstr_len))
     return NULL;
 
   new_hexstr = malloc(hexstr_len + pad_len + 1);
@@ -35,10 +35,10 @@ char *eth_hex_pad_left(const char *hexstr, size_t hexstr_len, size_t pad_len) {
   return new_hexstr;
 }
 
-char *eth_hex_pad_right(const char *hexstr, size_t hexstr_len, size_t pad_len) {
+char *eth_hexstr_pad_right(const char *hexstr, size_t hexstr_len, size_t pad_len) {
   char *new_hexstr;
 
-  if (!hexstr || !eth_is_hex_str(hexstr, hexstr_len))
+  if (!hexstr || !eth_is_hexstr(hexstr, hexstr_len))
     return NULL;
 
   new_hexstr = malloc(hexstr_len + pad_len + 1);
