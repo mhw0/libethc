@@ -1,12 +1,26 @@
 #include <ethc/hex.h>
-#include <string.h> // strncasecmp
+#include <string.h> // strcpy
 
-int eth_is_hexstr(const char *hexstr, size_t len) {
-  /* FIXME: `strncasecmp` is not part of the C standard. On non-unix systems this will cause a compilation error */
-  if (!hexstr || strncasecmp(hexstr, "0x", 2) != 0)
+#define HEXCHARS "0123456789abcdef"
+
+int eth_is_hexstr(const char *hexstr, size_t len, int prefix) {
+  size_t i;
+
+  len = len == -1 ? strlen(hexstr) : len;
+
+  if (hexstr == NULL || len == 0)
     return 0;
 
-  for (size_t i = 2; i < len; i++) {
+  if (prefix &&
+      (len < 3 || hexstr[0] != '0' && (hexstr[1] != 'x' || hexstr[1] != 'X')))
+    return 0;
+
+  if (prefix) {
+    hexstr += 2; // skip the first two characters
+    len -= 2;
+  }
+
+  for (i = 0; i < len; i++) {
     char ch = hexstr[i];
     if (((ch < 'A' || ch > 'F') && (ch < 'a' || ch > 'f')) &&
         (ch < '0' || ch > '9'))
@@ -16,15 +30,16 @@ int eth_is_hexstr(const char *hexstr, size_t len) {
   return 1;
 }
 
-char *eth_hexstr_pad_left(const char *hexstr, size_t hexstr_len, size_t pad_len) {
+char *eth_hexstr_pad_left(const char *hexstr, size_t hexstr_len,
+                          size_t pad_len) {
   char *new_hexstr;
 
-  if (!hexstr || !eth_is_hexstr(hexstr, hexstr_len))
+  if (!hexstr || !eth_is_hexstr(hexstr, hexstr_len, 1))
     return NULL;
 
   new_hexstr = malloc(hexstr_len + pad_len + 1);
 
-  if(!new_hexstr)
+  if (!new_hexstr)
     return NULL;
 
   memcpy(new_hexstr, hexstr, 2);
@@ -35,15 +50,16 @@ char *eth_hexstr_pad_left(const char *hexstr, size_t hexstr_len, size_t pad_len)
   return new_hexstr;
 }
 
-char *eth_hexstr_pad_right(const char *hexstr, size_t hexstr_len, size_t pad_len) {
+char *eth_hexstr_pad_right(const char *hexstr, size_t hexstr_len,
+                           size_t pad_len) {
   char *new_hexstr;
 
-  if (!hexstr || !eth_is_hexstr(hexstr, hexstr_len))
+  if (!hexstr || !eth_is_hexstr(hexstr, hexstr_len, 1))
     return NULL;
 
   new_hexstr = malloc(hexstr_len + pad_len + 1);
 
-  if(!new_hexstr)
+  if (!new_hexstr)
     return NULL;
 
   memcpy(new_hexstr, hexstr, hexstr_len);

@@ -4,37 +4,40 @@
 #include <tap.h>
 
 void test_eth_is_hexstr(void) {
-  const char *inp0 = "";
-  ok(eth_is_hexstr(inp0, strlen(inp0)) == 0);
+  const char *in0 = "";
+  ok(eth_is_hexstr(in0, strlen(in0), 0) == 0);
 
-  const char *inp1 = "0xgh";
-  ok(eth_is_hexstr(inp1, strlen(inp1)) == 0);
+  const char *in1 = "0xffff00";
+  ok(eth_is_hexstr(in1, -1, 1) == 1);
 
-  const char *inp2 = "0xffff00";
-  ok(eth_is_hexstr(inp2, strlen(inp2)) == 1);
+  const char *in2 = "0xFFFF00";
+  ok(eth_is_hexstr(in2, -1, 1) == 1);
 
-  const char *inp3 = "0xFFFF00";
-  ok(eth_is_hexstr(inp3, strlen(inp3)) == 1);
+  const char *in3 = "0XFFFF00";
+  ok(eth_is_hexstr(in3, -1, 1) == 1);
 
-  const char *inp4 = "0XFFFF00";
-  ok(eth_is_hexstr(inp4, strlen(inp4)) == 1);
+  const char *in4 = "ffff00";
+  ok(eth_is_hexstr(in4, -1, 1) == 0);
+
+  const char *in5 = "FFFF00";
+  ok(eth_is_hexstr(in5, -1, 0) == 1);
+
+  const char *in6 = "0xffff00nonhex";
+  ok(eth_is_hexstr(in6, 8, 1) == 1);
 }
 
 void test_eth_hexstr_pad_left(void) {
-  const char *inp0 = "0xff";
-  is(eth_hexstr_pad_left(inp0, strlen(inp0), 4), "0x0000ff");
+  const char *in0 = "0xff";
+  is(eth_hexstr_pad_left(in0, strlen(in0), 4), "0x0000ff");
 
-  const char *inp1 = "0xgh";
-  is(eth_hexstr_pad_left(inp1, strlen(inp1), 4), NULL);
+  const char *in1 = "0xgh";
+  is(eth_hexstr_pad_left(in1, strlen(in1), 4), NULL);
 }
 
 void test_eth_hexstr_pad_right(void) {
-  const char *inp0 = "0xff";
-  is(eth_hexstr_pad_right(inp0, strlen(inp0), 4), "0xff0000");
+  const char *in0 = "0xff";
+  is(eth_hexstr_pad_right(in0, strlen(in0), 4), "0xff0000");
 
-  const char *inp1 = "0xgh";
-  is(eth_hexstr_pad_right(inp1, strlen(inp1), 4), NULL);
-
-  const char *inp2 = NULL;
-  is(eth_hexstr_pad_right(inp2, 0, 4), NULL);
+  const char *in1 = "0xgh";
+  is(eth_hexstr_pad_right(in1, strlen(in1), 4), NULL);
 }
