@@ -11,7 +11,7 @@ include_directories(${GMP_INCLUDE_DIRS})
 link_directories(${GMP_LIBRARY_DIRS})
 add_definitions(${GMP_CFLAGS_OTHER})
 
-set(ETHC_SOURCE_FILES src/keccak256.c src/hex.c)
+set(ETHC_SOURCE_FILES src/address.c src/hex.c src/keccak256.c)
 
 add_library(ethc SHARED ${ETHC_SOURCE_FILES})
 

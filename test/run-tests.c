@@ -8,6 +8,9 @@ int main(int argc, char *argv[]) {
   test_eth_hexstr_pad_left();
   test_eth_hexstr_pad_right();
 
+  test_eth_is_address();
+  test_eth_is_checksum_address();
+
   done_testing();
   return 0;
 }
