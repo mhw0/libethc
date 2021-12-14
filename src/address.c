@@ -44,3 +44,34 @@ int eth_is_checksum_address(const char *addr, size_t len) {
 
   return 1;
 }
+
+int eth_to_checksum_address(char *addr, size_t len) {
+  size_t i;
+  uint8_t keccak[32];
+
+  len = len == -1 ? strlen(addr) : len;
+
+  if(!addr || !eth_is_address(addr, len))
+    return 0;
+
+  if(eth_keccak256((uint8_t*)addr + 2, len - 2, keccak) == 0)
+    return 0;
+
+  for(i = 0; i < 20; i++) {
+    char *addr_ptr = addr + (i * 2) + 2;
+    uint8_t keccak_high_nibble = keccak[i] >> 4 & 0xf;
+    uint8_t keccak_low_nibble = keccak[i] & 0x0f;
+
+    if(keccak_high_nibble >= 8)
+      *addr_ptr = toupper(*addr_ptr);
+    else
+      *addr_ptr = tolower(*addr_ptr);
+
+    if(keccak_low_nibble >= 8)
+      *(addr_ptr + 1) = toupper(*(addr_ptr + 1));
+    else
+      *(addr_ptr + 1) = tolower(*(addr_ptr + 1));
+  }
+
+  return 1;
+}

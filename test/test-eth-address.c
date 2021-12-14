@@ -21,3 +21,10 @@ void test_eth_is_checksum_address(void) {
   const char *in1 = "0x00000d42e4306c2097b2bd817efa00dec96903f1";
   ok(eth_is_checksum_address(in1, -1) == 0);
 }
+
+void test_eth_to_checksum_address(void) {
+  char in0[] = "0x00000d42e4306c2097b2bd817efa00dec96903f1";
+  const char *out0 = "0x00000D42e4306c2097B2BD817Efa00dEc96903F1";
+  ok(eth_to_checksum_address(in0, -1) == 1);
+  is(in0, out0);
+}
