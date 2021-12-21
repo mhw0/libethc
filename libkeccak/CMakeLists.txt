@@ -5,6 +5,7 @@ cmake_minimum_required(VERSION 3.0)
 set(KECCAK_SOURCE_FILES KeccakHash.c KeccakSponge.c KeccakSponge.inc KeccakP-1600-compact64.c)
 
 add_library(keccak STATIC ${KECCAK_SOURCE_FILES})
+set_target_properties(${PROJECT_NAME} PROPERTIES CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 target_include_directories(keccak
   INTERFACE
