@@ -17,7 +17,6 @@ http://creativecommons.org/publicdomain/zero/1.0/
 #ifndef _KeccakHashInterface_h_
 #define _KeccakHashInterface_h_
 
-#include "config.h"
 #ifdef XKCP_has_KeccakP1600
 
 #include <stdint.h>

@@ -1,39 +1,30 @@
-project(ethc LANGUAGES C)
-
-cmake_minimum_required(VERSION 3.21)
+cmake_minimum_required(VERSION 3.0)
+project(ethc LANGUAGES C VERSION 0.0.0)
 
 include(GNUInstallDirs)
 
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(GMP REQUIRED gmp)
-
-include_directories(${GMP_INCLUDE_DIRS})
-link_directories(${GMP_LIBRARY_DIRS})
-add_definitions(${GMP_CFLAGS_OTHER})
-
 set(ETHC_SOURCE_FILES src/address.c src/hex.c src/keccak256.c)
 
-add_library(ethc SHARED ${ETHC_SOURCE_FILES})
+option(ENABLE_TESTING "Enable testing" OFF)
 
-set_target_properties(ethc PROPERTIES C_STANDARD 99)
+add_library(${PROJECT_NAME} SHARED ${ETHC_SOURCE_FILES})
 
-option(ENABLE_TESTING "Enable testing" ON)
+set_target_properties(${PROJECT_NAME} PROPERTIES
+    C_STANDARD 99
+    SOVERSION ${PROJECT_VERSION_MAJOR})
 
-if(DEFINED ENABLE_TESTING)
+target_link_libraries(${PROJECT_NAME} keccak)
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+if(ENABLE_TESTING)
   enable_testing()
   add_subdirectory(test)
 endif()
 
-add_subdirectory(src/keccak256)
+add_subdirectory(libkeccak)
 
-target_link_libraries(ethc ${GMP_LIBRARIES})
-target_include_directories(ethc PRIVATE include/)
-
-# install the dylib
-install(TARGETS ethc LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
-# install the header files
+install(TARGETS ${PROJECT_NAME} LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/include DESTINATION . FILES_MATCHING PATTERN "*.h")
-
 install(FILES ${CMAKE_BINARY_DIR}/ethc.pc DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pkgconfig)
 
 configure_file(ethc.pc.in ethc.pc @ONLY)
