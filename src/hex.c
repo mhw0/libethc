@@ -1,27 +1,34 @@
 #include <ethc/hex.h>
-#include <string.h> // strcpy
+#include <stdlib.h>
+#include <strings.h>
 
-#define HEXCHARS "0123456789abcdef"
+#if defined(_MSC_VER)
+#define strncasecmp _strnicmp
+#define strcasecmp _stricmp
+#endif
 
-int eth_is_hexstr(const char *hexstr, size_t len, int prefix) {
+int eth_is_hexstr(const char *str, size_t len, int strict) {
+  int has_prefix = 0;
   size_t i;
 
-  len = len == -1 ? strlen(hexstr) : len;
+  len = len == -1 ? strlen(str) : len;
 
-  if (hexstr == NULL || len == 0)
+  if (!str || len == 0)
     return 0;
 
-  if (prefix &&
-      (len < 3 || hexstr[0] != '0' && (hexstr[1] != 'x' || hexstr[1] != 'X')))
+  if (strncasecmp(str, "0x", 2) == 0)
+    has_prefix = 1;
+
+  if (strict && !has_prefix)
     return 0;
 
-  if (prefix) {
-    hexstr += 2; // skip the first two characters
+  if (has_prefix) {
+    str += 2;
     len -= 2;
   }
 
   for (i = 0; i < len; i++) {
-    char ch = hexstr[i];
+    char ch = str[i];
     if (((ch < 'A' || ch > 'F') && (ch < 'a' || ch > 'f')) &&
         (ch < '0' || ch > '9'))
       return 0;
@@ -30,41 +37,70 @@ int eth_is_hexstr(const char *hexstr, size_t len, int prefix) {
   return 1;
 }
 
-char *eth_hexstr_pad_left(const char *hexstr, size_t hexstr_len,
-                          size_t pad_len) {
-  char *new_hexstr;
+char *eth_hexstr_pad_left(const char *str, size_t str_len, size_t width) {
+  char *new_str = NULL;
+  int has_prefix = 0;
+  size_t fill_len = 0;
 
-  if (!hexstr || !eth_is_hexstr(hexstr, hexstr_len, 1))
+  str_len = str_len == -1 ? strlen(str) : str_len;
+
+  // should we return `str` or copy of `str` when `str_len` > `width` ?
+  if (!str || str_len > width || !eth_is_hexstr(str, str_len, 0))
     return NULL;
 
-  new_hexstr = malloc(hexstr_len + pad_len + 1);
+  if (strncasecmp(str, "0x", 2) == 0)
+    has_prefix = 1;
 
-  if (!new_hexstr)
+  new_str = malloc(has_prefix ? (width + 2 + 1) : (width + 1));
+  if (!new_str)
     return NULL;
 
-  memcpy(new_hexstr, hexstr, 2);
-  memset(new_hexstr + 2, '0', pad_len);
-  memcpy(new_hexstr + 2 + pad_len, hexstr + 2, hexstr_len - 2);
-  new_hexstr[hexstr_len + pad_len] = '\0';
+  if (has_prefix) {
+    strncpy(new_str, str, 2);
+    fill_len = width - (str_len - 2);
+    memset(new_str + 2, '0', fill_len);
+    memcpy(new_str + 2 + fill_len, str + 2, str_len - 2);
+    new_str[width + 2] = '\0';
+    return new_str;
+  }
 
-  return new_hexstr;
+  fill_len = width - str_len;
+  memset(new_str, '0', fill_len);
+  memcpy(new_str + fill_len, str, str_len);
+  new_str[width] = '\0';
+  return new_str;
 }
 
-char *eth_hexstr_pad_right(const char *hexstr, size_t hexstr_len,
-                           size_t pad_len) {
-  char *new_hexstr;
+char *eth_hexstr_pad_right(const char *str, size_t str_len, size_t width) {
+  char *new_str = NULL;
+  int has_prefix = 0;
+  size_t fill_len = 0;
 
-  if (!hexstr || !eth_is_hexstr(hexstr, hexstr_len, 1))
+  str_len = str_len == -1 ? strlen(str) : str_len;
+
+  if (!str || str_len > width || !eth_is_hexstr(str, str_len, 0))
     return NULL;
 
-  new_hexstr = malloc(hexstr_len + pad_len + 1);
+  if (strncasecmp(str, "0x", 2) == 0) {
+    has_prefix = 1;
+  }
 
-  if (!new_hexstr)
+  new_str = malloc(has_prefix ? (width + 2 + 1) : (width + 1));
+  if (!new_str)
     return NULL;
 
-  memcpy(new_hexstr, hexstr, hexstr_len);
-  memset(new_hexstr + hexstr_len, '0', pad_len);
-  new_hexstr[hexstr_len + pad_len] = '\0';
+  strncpy(new_str, str, str_len);
 
-  return new_hexstr;
+  if (has_prefix) {
+    fill_len = width - (str_len - 2);
+    memset(new_str + str_len, '0', fill_len);
+    new_str[width + 2] = '\0';
+    return new_str;
+  }
+
+  fill_len = width - str_len;
+  memset(new_str + str_len, '0', fill_len);
+  new_str[width] = '\0';
+
+  return new_str;
 }

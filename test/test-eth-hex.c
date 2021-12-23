@@ -28,16 +28,16 @@ void test_eth_is_hexstr(void) {
 
 void test_eth_hexstr_pad_left(void) {
   const char *in0 = "0xff";
-  is(eth_hexstr_pad_left(in0, strlen(in0), 4), "0x0000ff");
+  is(eth_hexstr_pad_left(in0, strlen(in0), 4), "0x00ff");
 
-  const char *in1 = "0xgh";
-  is(eth_hexstr_pad_left(in1, strlen(in1), 4), NULL);
+  const char *in1 = "ff";
+  is(eth_hexstr_pad_left(in1, strlen(in1), 4), "00ff");
 }
 
 void test_eth_hexstr_pad_right(void) {
   const char *in0 = "0xff";
-  is(eth_hexstr_pad_right(in0, strlen(in0), 4), "0xff0000");
+  is(eth_hexstr_pad_right(in0, strlen(in0), 4), "0xff00");
 
-  const char *in1 = "0xgh";
-  is(eth_hexstr_pad_right(in1, strlen(in1), 4), NULL);
+  const char *in1 = "ff";
+  is(eth_hexstr_pad_right(in1, strlen(in1), 4), "ff00");
 }

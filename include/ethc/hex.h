@@ -1,9 +1,9 @@
 #ifndef ETHC_HEX_H
 #define ETHC_HEX_H
-#include <stdlib.h>
+#include <stddef.h>
 
-int eth_is_hexstr(const char* input, size_t len, int prefix);
-char *eth_hexstr_pad_left(const char* hexstr, size_t hexstr_len, size_t pad_len);
-char *eth_hexstr_pad_right(const char* hexstr, size_t hexstr_len, size_t pad_len);
+int eth_is_hexstr(const char* str, size_t len, int strict);
+char *eth_hexstr_pad_left(const char* str, size_t str_len, size_t width);
+char *eth_hexstr_pad_right(const char* str, size_t str_len, size_t width);
 
 #endif
