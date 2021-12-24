@@ -29,7 +29,7 @@ install(
   DESTINATION .
   FILES_MATCHING
   PATTERN "*.h")
-install(FILES ${CMAKE_BINARY_DIR}/ethc.pc
+install(FILES ${CMAKE_BINARY_DIR}/libethc.pc
         DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pkgconfig)
 
-configure_file(ethc.pc.in ethc.pc @ONLY)
+configure_file(libethc.pc.in libethc.pc @ONLY)
