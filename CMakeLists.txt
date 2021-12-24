@@ -30,6 +30,6 @@ install(
   FILES_MATCHING
   PATTERN "*.h")
 install(FILES ${CMAKE_BINARY_DIR}/libethc.pc
-        DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pkgconfig)
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 
 configure_file(libethc.pc.in libethc.pc @ONLY)
