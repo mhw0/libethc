@@ -2,30 +2,25 @@
 #include <ethc/address.h>
 #include <ethc/hex.h>
 #include <ethc/keccak256.h>
-#include <string.h>
 
-int eth_is_address(const char *addr, size_t len) {
-  len = len == -1 ? strlen(addr) : len;
-
-  if (!addr || len != 42 || !eth_is_hexstr(addr, len, 1))
+int eth_is_address(const char *addr) {
+  if (!addr || !eth_is_hexstr(addr, 42, 1))
     return 0;
 
   return 1;
 }
 
-int eth_is_checksum_address(const char *addr, size_t len) {
+int eth_is_checksum_address(const char *addr) {
   uint8_t addr2[42], keccak[32];
   size_t i;
 
-  len = len == -1 ? strlen(addr) : len;
-
-  if (!eth_is_address(addr, len))
+  if (!eth_is_address(addr))
     return 0;
 
-  for (i = 0; i < len; i++)
+  for (i = 0; i < 42; i++)
     addr2[i] = tolower(addr[i]);
 
-  if (eth_keccak256(addr2 + 2, len - 2, keccak) == 0)
+  if (eth_keccak256(addr2 + 2, 40, keccak) == 0)
     return 0;
 
   for (i = 0; i < 20; i++) {
@@ -45,16 +40,14 @@ int eth_is_checksum_address(const char *addr, size_t len) {
   return 1;
 }
 
-int eth_to_checksum_address(char *addr, size_t len) {
+int eth_to_checksum_address(char *addr) {
   size_t i;
   uint8_t keccak[32];
 
-  len = len == -1 ? strlen(addr) : len;
-
-  if(!addr || !eth_is_address(addr, len))
+  if(!addr || !eth_is_address(addr))
     return 0;
 
-  if(eth_keccak256((uint8_t*)addr + 2, len - 2, keccak) == 0)
+  if(eth_keccak256((uint8_t*)addr + 2, 40, keccak) == 0)
     return 0;
 
   for(i = 0; i < 20; i++) {
