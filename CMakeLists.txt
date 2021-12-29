@@ -3,7 +3,7 @@ project(ethc LANGUAGES C VERSION 0.2.0)
 
 include(GNUInstallDirs)
 
-set(ETHC_SOURCE_FILES src/address.c src/hex.c src/keccak256.c)
+set(ETHC_SOURCE_FILES src/address.c src/bloom.c src/hex.c src/keccak256.c)
 
 option(ENABLE_TESTING "Enable testing" OFF)
 
