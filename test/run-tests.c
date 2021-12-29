@@ -12,6 +12,10 @@ int main() {
   test_eth_is_checksum_address();
   test_eth_to_checksum_address();
 
+  test_eth_bloom_copy();
+  test_eth_bloom_and();
+  test_eth_bloom_or();
+
   done_testing();
   return 0;
 }
