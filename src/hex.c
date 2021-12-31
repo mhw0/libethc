@@ -7,6 +7,8 @@
 #define strcasecmp _stricmp
 #endif
 
+#define HEXCHARS "0123456789abcdef"
+
 int eth_is_hexstr(const char *str, size_t len, int strict) {
   int has_prefix = 0;
   size_t i;
@@ -104,3 +106,27 @@ char *eth_hexstr_pad_right(const char *str, size_t str_len, size_t width) {
 
   return new_str;
 }
+
+int eth_hexstr_from_bytes(const uint8_t *bytes, size_t len, int prefix, char *hexstr) {
+  size_t i = 0, j = 0;
+
+  if(!bytes || !hexstr || len < 1)
+    return 0;
+
+  if(prefix) {
+    hexstr[0] = '0';
+    hexstr[1] = 'x';
+    j += 2;
+  }
+
+  while(i < len) {
+    hexstr[j++] = HEXCHARS[((bytes[i] & 0xFF) >> 4) & 0xF];
+    hexstr[j++] = HEXCHARS[(bytes[i] & 0xFF) & 0xF];
+    i++;
+  }
+
+  hexstr[j] = '\0';
+
+  return 1;
+};
+

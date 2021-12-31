@@ -7,6 +7,7 @@ int main() {
   test_eth_is_hexstr();
   test_eth_hexstr_pad_left();
   test_eth_hexstr_pad_right();
+  test_eth_hexstr_from_bytes();
 
   test_eth_is_address();
   test_eth_is_checksum_address();

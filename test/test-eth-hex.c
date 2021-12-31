@@ -41,3 +41,19 @@ void test_eth_hexstr_pad_right(void) {
   const char *in1 = "ff";
   is(eth_hexstr_pad_right(in1, strlen(in1), 4), "ff00");
 }
+
+void test_eth_hexstr_from_bytes(void) {
+  const uint8_t bytes[3] = { 0xff, 0xaa, 0x3 };
+
+  const char *expected1 = "ffaa03";
+  char result1[7];
+
+  ok(eth_hexstr_from_bytes(bytes, 3, 0, result1));
+  is(result1, expected1);
+
+  const char *expected2 = "0xffaa03";
+  char result2[9];
+
+  ok(eth_hexstr_from_bytes(bytes, 3, 1, result2));
+  is(result2, expected2);
+}
