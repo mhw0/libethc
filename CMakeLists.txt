@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(ethc LANGUAGES C VERSION 0.4.0)
+project(ethc LANGUAGES C VERSION 0.4.1)
 
 include(GNUInstallDirs)
 
