@@ -4,7 +4,7 @@
 #include <ethc/keccak256.h>
 
 int eth_is_address(const char *addr) {
-  if (!addr || !eth_is_hexstr(addr, 42, 1))
+  if (!addr || !eth_is_hex(addr, 42, 1))
     return 0;
 
   return 1;
