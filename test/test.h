@@ -12,3 +12,5 @@ void test_eth_to_checksum_address(void);
 void test_eth_bloom_copy(void);
 void test_eth_bloom_and(void);
 void test_eth_bloom_or(void);
+
+void test_eth_abi_encode_bool(void);
