@@ -14,3 +14,4 @@ void test_eth_bloom_and(void);
 void test_eth_bloom_or(void);
 
 void test_eth_abi_encode_bool(void);
+void test_eth_abi_encode_address(void);

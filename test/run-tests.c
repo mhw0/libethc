@@ -18,6 +18,7 @@ int main() {
   test_eth_bloom_or();
 
   test_eth_abi_encode_bool();
+  test_eth_abi_encode_address();
 
   done_testing();
   return 0;

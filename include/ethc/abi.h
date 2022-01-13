@@ -6,6 +6,7 @@ extern "C" {
 #endif
 
 int eth_abi_encode_bool(char *rstr, int b);
+int eth_abi_encode_address(char *rstr, char *str);
 
 #ifdef __cplusplus
 }
