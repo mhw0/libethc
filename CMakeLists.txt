@@ -1,20 +1,23 @@
 cmake_minimum_required(VERSION 3.0)
 project(ethc LANGUAGES C VERSION 0.5.0)
 
+include(FindPkgConfig)
 include(GNUInstallDirs)
 
 set(ETHC_SOURCE_FILES src/abi.c src/address.c src/bloom.c src/hex.c src/keccak256.c)
 
 option(ENABLE_TESTING "Enable testing" OFF)
 
+pkg_check_modules(GMP REQUIRED gmp)
+
 add_library(${PROJECT_NAME} SHARED ${ETHC_SOURCE_FILES})
 
 set_target_properties(
   ${PROJECT_NAME} PROPERTIES C_STANDARD 99 SOVERSION ${PROJECT_VERSION_MAJOR})
 
-target_link_libraries(${PROJECT_NAME} keccak)
+target_link_libraries(${PROJECT_NAME} keccak ${GMP_LINK_LIBRARIES})
 target_include_directories(${PROJECT_NAME}
-                           PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+                           PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include ${GMP_INCLUDE_DIRS})
 
 if(ENABLE_TESTING)
   enable_testing()

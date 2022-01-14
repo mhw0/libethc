@@ -1,6 +1,39 @@
 #include <ethc/abi.h>
 #include <ethc/hex.h>
 #include <ethc/address.h>
+#include <gmp.h>
+
+int eth_abi_encode_uint(char *rstr, const char *str, uint16_t nbits) {
+  mpz_t j, k, l;
+  char tmp[64 + 1];
+
+  if(!rstr || !str)
+    return 0;
+
+  if(nbits == 0 || nbits % 8 != 0 || nbits > 256)
+    return 0;
+
+  mpz_init_set_str(j, str, 0);
+
+  if(mpz_sgn(j) < 0)
+    return 0;
+
+  mpz_init_set_ui(k, 1);
+  mpz_init(l);
+  mpz_mul_2exp(l, k, nbits);
+  mpz_sub(l, l, k);
+
+  if(mpz_cmp(j, l) > 0)
+    return 0;
+
+  gmp_sprintf(tmp, "%Zx", j);
+
+  mpz_clear(j);
+  mpz_clear(k);
+  mpz_clear(l);
+
+  return eth_hex_pad_left(rstr, tmp, -1, 64);
+}
 
 int eth_abi_encode_bool(char *rstr, int b) {
   if(!rstr)
