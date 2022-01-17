@@ -69,9 +69,7 @@ int eth_abi_encode_uint(char *rstr, const char *str, uint16_t nbits) {
 
   gmp_sprintf(tmp, "%Zx", j);
 
-  mpz_clear(j);
-  mpz_clear(k);
-  mpz_clear(l);
+  mpz_clears(j, k, l, NULL);
 
   return eth_hex_pad_left(rstr, tmp, -1, 64);
 }
