@@ -13,8 +13,27 @@ void test_eth_abi_encode_address(void) {
   char *in1 = "0xfab039650e3b529dae81a5ceec00097da1a2b451";
   char out1[64 + 1];
   const char *exp1 = "000000000000000000000000fab039650e3b529dae81a5ceec00097da1a2b451";
+
   ok(eth_abi_encode_address(out1, in1) == 1);
   is(out1, exp1);
+}
+
+void test_eth_abi_encode_int(void) {
+  char out1[64 + 1];;
+  const char *exp1 = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff80";
+  ok(eth_abi_encode_int(out1, "-128", 8) == 1);
+  is(out1, exp1);
+
+  char out2[64 + 1];;
+  ok(eth_abi_encode_int(out2, "-129", 8) == 0);
+
+  char out3[64 + 1];;
+  const char *exp3 = "000000000000000000000000000000000000000000000000000000000000007f";
+  ok(eth_abi_encode_int(out3, "127", 8) == 1);
+  is(out3, exp3);
+
+  char out4[64 + 1];;
+  ok(eth_abi_encode_int(out3, "128", 8) == 0);
 }
 
 void test_eth_abi_encode_uint(void) {

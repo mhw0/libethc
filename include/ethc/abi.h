@@ -9,6 +9,7 @@ extern "C" {
 
 int eth_abi_encode_bool(char *rstr, int b);
 int eth_abi_encode_address(char *rstr, char *str);
+int eth_abi_encode_int(char *rstr, const char *str, uint16_t nbits);
 int eth_abi_encode_uint(char *rstr, const char *str, uint16_t nbits);
 
 #ifdef __cplusplus
