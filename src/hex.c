@@ -8,11 +8,12 @@
 
 #define HEXCHARS "0123456789abcdef"
 
-int eth_is_hex(const char *str, size_t len, int strict) {
+int eth_is_hex(const char *str, int len, int strict) {
   int prefix = 0;
   size_t i;
 
-  len = len == -1 ? strlen(str) : len;
+  if(len < 0)
+    len = (int)strlen(str);
 
   if (!str || len == 0)
     return 0;
@@ -38,10 +39,11 @@ int eth_is_hex(const char *str, size_t len, int strict) {
   return 1;
 }
 
-int eth_hex_pad_left(char *rstr, const char *str, size_t len, size_t width) {
+int eth_hex_pad_left(char *rstr, const char *str, int len, size_t width) {
   size_t fill_len = 0;
 
-  len = len == -1 ? strlen(str) : len;
+  if(len < 0)
+    len = (int)strlen(str);
 
   if(!str || !rstr)
     return 0;
@@ -57,10 +59,11 @@ int eth_hex_pad_left(char *rstr, const char *str, size_t len, size_t width) {
   return 1;
 }
 
-int eth_hex_pad_right(char *rstr, const char *str, size_t len, size_t width) {
+int eth_hex_pad_right(char *rstr, const char *str, int len, size_t width) {
   size_t fill_len = 0;
 
-  len = len == -1 ? strlen(str) : len;
+  if(len < 0)
+    len = (int)strlen(str);
 
   if(!rstr || !str)
     return 0;
