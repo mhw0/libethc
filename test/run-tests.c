@@ -22,6 +22,8 @@ int main() {
   test_eth_abi_encode_int();
   test_eth_abi_encode_uint();
 
+  test_eth_utf8_strlen();
+
   done_testing();
   return 0;
 }
