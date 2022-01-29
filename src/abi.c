@@ -1,7 +1,24 @@
 #include <ethc/abi.h>
 #include <ethc/hex.h>
 #include <ethc/address.h>
+#include <ethc/keccak256.h>
+#include <string.h>
 #include <gmp.h>
+
+int eth_abi_encode_func(char *rstr, const char *func, int len) {
+  uint8_t keccak[32];
+
+  if(!rstr || !func)
+    return 0;
+
+  if(len < 0)
+    len = (int)strlen(func);
+
+  if(eth_keccak256((uint8_t*)func, len, keccak) == 0)
+    return 0;
+
+  return eth_hex_from_bytes(rstr, keccak, 3);
+}
 
 int eth_abi_encode_bytes(char *rstr, const uint8_t *bytes, uint8_t size) {
   char tmp[size * 2 + 1];
