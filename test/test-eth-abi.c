@@ -78,3 +78,12 @@ void test_eth_abi_encode_func(void) {
   ok(eth_abi_encode_func(out1, in1, -1) == 1);
   is(out1, exp1);
 }
+
+void test_eth_abi_encode_event(void) {
+  const char *in1 = "approval(address,address,uint256)";
+  char out1[64 + 1];
+  const char *exp1 = "5c52a5f2b86fd16be577188b5a83ef1165faddc00b137b10285f16162e17792a";
+
+  ok(eth_abi_encode_event(out1, in1, -1) == 1);
+  is(out1, exp1);
+}

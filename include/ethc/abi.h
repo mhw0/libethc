@@ -13,6 +13,7 @@ int eth_abi_encode_int(char *rstr, const char *str, uint16_t nbits);
 int eth_abi_encode_uint(char *rstr, const char *str, uint16_t nbits);
 int eth_abi_encode_bytes(char *rstr, const uint8_t *bytes, uint8_t size);
 int eth_abi_encode_func(char *rstr, const char *func, int len);
+int eth_abi_encode_event(char *rstr, const char *event, int len);
 
 #ifdef __cplusplus
 }

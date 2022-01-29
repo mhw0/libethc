@@ -5,6 +5,21 @@
 #include <string.h>
 #include <gmp.h>
 
+int eth_abi_encode_event(char *rstr, const char *event, int len) {
+  uint8_t keccak[32];
+
+  if(!rstr || !event)
+    return 0;
+
+  if(len < 0)
+    len = (int)strlen(event);
+
+  if(eth_keccak256((uint8_t*)event, len, keccak) == 0)
+    return 0;
+
+  return eth_hex_from_bytes(rstr, keccak, 32);
+}
+
 int eth_abi_encode_func(char *rstr, const char *func, int len) {
   uint8_t keccak[32];
 
