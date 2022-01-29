@@ -17,5 +17,6 @@ void test_eth_abi_encode_bool(void);
 void test_eth_abi_encode_address(void);
 void test_eth_abi_encode_int(void);
 void test_eth_abi_encode_uint(void);
+void test_eth_abi_encode_bytes(void);
 
 void test_eth_utf8_strlen(void);

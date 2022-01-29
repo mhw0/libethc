@@ -21,6 +21,7 @@ int main() {
   test_eth_abi_encode_address();
   test_eth_abi_encode_int();
   test_eth_abi_encode_uint();
+  test_eth_abi_encode_bytes();
 
   test_eth_utf8_strlen();
 

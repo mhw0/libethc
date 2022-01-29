@@ -59,3 +59,13 @@ void test_eth_abi_encode_uint(void) {
 
   ok(eth_abi_encode_uint(out4, in4, 9) == 0);
 }
+
+void test_eth_abi_encode_bytes(void) {
+  static const uint8_t in1[] = { 0xaa, 0xbb, 0xcc };
+  char out1[64 + 1];
+
+  const char *exp1 = "aabbcc0000000000000000000000000000000000000000000000000000000000";
+
+  ok(eth_abi_encode_bytes(out1, in1, 3) == 1);
+  is(out1, exp1);
+}

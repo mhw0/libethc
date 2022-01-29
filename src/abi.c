@@ -3,6 +3,18 @@
 #include <ethc/address.h>
 #include <gmp.h>
 
+int eth_abi_encode_bytes(char *rstr, const uint8_t *bytes, uint8_t size) {
+  char tmp[size * 2 + 1];
+
+  if(size <= 0 || size > 32)
+    return 0;
+
+  if(!bytes || !eth_hex_from_bytes(tmp, bytes, size))
+    return 0;
+
+  return eth_hex_pad_right(rstr, tmp, -1, 64);
+}
+
 int eth_abi_encode_int(char *rstr, const char *str, uint16_t nbits) {
   mpz_t j, k, l, m;
   char tmp[64 + 1];
