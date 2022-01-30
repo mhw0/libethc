@@ -18,6 +18,7 @@ void test_eth_abi_encode_address(void);
 void test_eth_abi_encode_int(void);
 void test_eth_abi_encode_uint(void);
 void test_eth_abi_encode_bytes(void);
+void test_eth_abi_encode_bytesd(void);
 void test_eth_abi_encode_func(void);
 void test_eth_abi_encode_event(void);
 

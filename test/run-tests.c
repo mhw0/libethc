@@ -22,6 +22,7 @@ int main() {
   test_eth_abi_encode_int();
   test_eth_abi_encode_uint();
   test_eth_abi_encode_bytes();
+  test_eth_abi_encode_bytesd();
   test_eth_abi_encode_func();
   test_eth_abi_encode_event();
 
