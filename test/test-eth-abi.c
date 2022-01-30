@@ -72,8 +72,8 @@ void test_eth_abi_encode_bytes(void) {
 
 void test_eth_abi_encode_func(void) {
   const char *in1 = "approve(address,uint256)";
-  char out1[6 + 1];
-  const char *exp1 = "095ea7";
+  char out1[8 + 1];
+  const char *exp1 = "095ea7b3";
 
   ok(eth_abi_encode_func(out1, in1, -1) == 1);
   is(out1, exp1);

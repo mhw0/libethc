@@ -32,7 +32,7 @@ int eth_abi_encode_func(char *rstr, const char *func, int len) {
   if(eth_keccak256((uint8_t*)func, len, keccak) == 0)
     return 0;
 
-  return eth_hex_from_bytes(rstr, keccak, 3);
+  return eth_hex_from_bytes(rstr, keccak, 4);
 }
 
 int eth_abi_encode_bytes(char *rstr, const uint8_t *bytes, uint8_t size) {
