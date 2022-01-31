@@ -15,7 +15,7 @@ add_library(${PROJECT_NAME} SHARED ${ETHC_SOURCE_FILES})
 set_target_properties(
   ${PROJECT_NAME} PROPERTIES C_STANDARD 99 SOVERSION ${PROJECT_VERSION_MAJOR})
 
-target_link_libraries(${PROJECT_NAME} keccak ${GMP_LINK_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} keccak m ${GMP_LINK_LIBRARIES})
 target_include_directories(${PROJECT_NAME}
                            PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include ${GMP_INCLUDE_DIRS})
 
