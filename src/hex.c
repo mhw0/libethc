@@ -1,9 +1,10 @@
 #include <ethc/hex.h>
-#include <strings.h>
+#include <string.h>
 
-#if defined(_MSC_VER)
+#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
+#include <strings.h>
+#elif defined(_MSC_VER)
 #define strncasecmp _strnicmp
-#define strcasecmp _stricmp
 #endif
 
 #define HEXCHARS "0123456789abcdef"
