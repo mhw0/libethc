@@ -52,17 +52,25 @@ int eth_abi_encode_bytes(char *rstr, const uint8_t *bytes, uint8_t size) {
 char *eth_abi_encode_bytesd(const uint8_t *bytes, size_t len) {
   char tmp[len * 2 + 1], *buff;
   int width;
+  mpz_t j;
 
   if (!bytes || !eth_hex_from_bytes(tmp, bytes, len))
     return NULL;
 
-  width = (int)(64 * (ceil((len * 2) / 64.0)));
+  mpz_init_set_ui(j, len);
 
-  buff = malloc(width);
+  width = (int)((64 * (ceil((len * 2) / 64.0))));
 
-  if (!buff || !eth_hex_pad_right(buff, tmp, -1, width))
+  buff = malloc(64 + width + 1);
+  if(!buff)
     return NULL;
 
+  gmp_sprintf(buff, "%Z064x", j);
+
+  if (!eth_hex_pad_right(buff + 64, tmp, len * 2, width))
+    return NULL;
+
+  mpz_clear(j);
   return buff;
 }
 

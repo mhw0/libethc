@@ -92,11 +92,12 @@ void test_eth_abi_encode_bytesd(void) {
       0x27, 0x3b, 0x7b, 0xfa, 0xd8, 0x04, 0x5d,
   };
   const char *exp1 =
-      "c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470c5d24601"
-      "86f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d000000";
+      "000000000000000000000000000000000000000000000000000000000000003dc5d24601"
+      "86f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470c5d2460186f7233c"
+      "927e7db2dcc703c0e500b653ca82273b7bfad8045d000000";
 
   out1 = eth_abi_encode_bytesd(in1, 61);
-  is(exp1, out1);
+  is(out1, exp1);
   free(out1);
 
   char *out2;
