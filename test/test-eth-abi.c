@@ -105,6 +105,14 @@ void test_eth_abi_encode_bytesd(void) {
   is(out2, NULL);
 }
 
+void test_eth_abi_encode_stringd(void) {
+  char *in1 = "libèthc", *out1;
+  const char *exp1 = "00000000000000000000000000000000000000000000000000000000000000086c6962c3a8746863000000000000000000000000000000000000000000000000";
+
+  out1 = eth_abi_encode_stringd(in1, -1);
+  is(out1, exp1);
+}
+
 void test_eth_abi_encode_func(void) {
   const char *in1 = "approve(address,uint256)";
   char out1[8 + 1];

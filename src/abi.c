@@ -74,6 +74,14 @@ char *eth_abi_encode_bytesd(const uint8_t *bytes, size_t len) {
   return buff;
 }
 
+char *eth_abi_encode_stringd(const char *str, int len) {
+
+  if(len < 0)
+    len = (int)strlen(str);
+
+  return eth_abi_encode_bytesd((uint8_t*)str, len);
+}
+
 int eth_abi_encode_int(char *rstr, const char *str, uint16_t nbits) {
   mpz_t j, k, l, m;
   char tmp[64 + 1];
