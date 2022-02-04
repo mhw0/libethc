@@ -4,7 +4,7 @@ project(ethc LANGUAGES C VERSION 0.6.0)
 include(FindPkgConfig)
 include(GNUInstallDirs)
 
-set(ETHC_SOURCE_FILES src/abi.c src/address.c src/bloom.c src/utf8.c src/hex.c src/keccak256.c)
+set(ETHC_SOURCE_FILES src/abi.c src/address.c src/bloom.c src/unit.c src/utf8.c src/hex.c src/keccak256.c)
 
 option(ENABLE_TESTING "Enable testing" OFF)
 

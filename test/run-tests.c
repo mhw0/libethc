@@ -27,6 +27,8 @@ int main() {
   test_eth_abi_encode_func();
   test_eth_abi_encode_event();
 
+  test_eth_unit_convert();
+
   test_eth_utf8_strlen();
 
   done_testing();
