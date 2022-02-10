@@ -5,6 +5,8 @@
 extern "C" {
 #endif
 
+#include "ethc-common.h"
+
 #define ETH_UNIT_MAP(XX)                                                       \
   XX(WEI, "1")                                                                 \
   XX(KWEI, "1000")                                                             \
@@ -42,8 +44,8 @@ static const char *ETH_UNIT_AMOUNTS[] = {
 #undef XX
 };
 
-char *eth_unit_convert(const char *amount, enum eth_unit from,
-                       enum eth_unit to);
+ETHC_EXPORT char *eth_unit_convert(const char *amount, enum eth_unit from,
+                                   enum eth_unit to);
 
 #ifdef __cplusplus
 }

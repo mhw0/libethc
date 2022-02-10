@@ -5,10 +5,11 @@
 extern "C" {
 #endif
 
+#include "ethc-common.h"
 #include <stddef.h>
 #include <stdint.h>
 
-int eth_keccak256(const uint8_t *data, size_t len, uint8_t *out);
+ETHC_EXPORT int eth_keccak256(const uint8_t *data, size_t len, uint8_t *out);
 
 #ifdef __cplusplus
 }

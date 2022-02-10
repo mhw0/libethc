@@ -1,10 +1,20 @@
 cmake_minimum_required(VERSION 3.0)
-project(ethc LANGUAGES C VERSION 0.6.0)
+project(
+  ethc
+  LANGUAGES C
+  VERSION 0.6.0)
 
 include(FindPkgConfig)
 include(GNUInstallDirs)
 
-set(ETHC_SOURCE_FILES src/abi.c src/address.c src/bloom.c src/unit.c src/utf8.c src/hex.c src/keccak256.c)
+set(ETHC_SOURCE_FILES
+    src/abi.c
+    src/address.c
+    src/bloom.c
+    src/unit.c
+    src/utf8.c
+    src/hex.c
+    src/keccak256.c)
 
 option(ENABLE_TESTING "Enable testing" OFF)
 
@@ -16,8 +26,9 @@ set_target_properties(
   ${PROJECT_NAME} PROPERTIES C_STANDARD 99 SOVERSION ${PROJECT_VERSION_MAJOR})
 
 target_link_libraries(${PROJECT_NAME} keccak m ${GMP_LINK_LIBRARIES})
-target_include_directories(${PROJECT_NAME}
-                           PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include ${GMP_INCLUDE_DIRS})
+target_include_directories(
+  ${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
+                          ${GMP_INCLUDE_DIRS})
 
 if(ENABLE_TESTING)
   enable_testing()

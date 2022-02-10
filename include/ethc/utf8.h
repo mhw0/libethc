@@ -5,9 +5,10 @@
 extern "C" {
 #endif
 
+#include "ethc-common.h"
 #include <stddef.h>
 
-size_t eth_utf8_strlen(const char *str, int len);
+ETHC_EXPORT size_t eth_utf8_strlen(const char *str, int len);
 
 #ifdef __cplusplus
 }

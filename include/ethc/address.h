@@ -5,11 +5,12 @@
 extern "C" {
 #endif
 
+#include "ethc-common.h"
 #include <stddef.h>
 
-int eth_is_address(const char *addr);
-int eth_is_checksum_address(const char *addr);
-int eth_to_checksum_address(char *addr);
+ETHC_EXPORT int eth_is_address(const char *addr);
+ETHC_EXPORT int eth_is_checksum_address(const char *addr);
+ETHC_EXPORT int eth_to_checksum_address(char *addr);
 
 #ifdef __cplusplus
 }
