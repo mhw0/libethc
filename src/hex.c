@@ -13,17 +13,17 @@ int eth_is_hex(const char *str, int len, int strict) {
   int prefix = 0;
   size_t i;
 
-  if(len < 0)
+  if (len < 0)
     len = (int)strlen(str);
 
-  if (!str || len == 0)
-    return 0;
+  ETHC_RETURN_IF_FALSE(str != NULL, ETHC_FAIL);
+  ETHC_RETURN_IF_FALSE(len != 0, ETHC_FAIL);
 
   if (strncasecmp(str, "0x", 2) == 0)
     prefix = 1;
 
-  if (strict && !prefix)
-    return 0;
+  if(strict && !prefix)
+    return ETHC_FAIL;
 
   if (prefix) {
     str += 2;
@@ -34,66 +34,67 @@ int eth_is_hex(const char *str, int len, int strict) {
     char ch = str[i];
     if (((ch < 'A' || ch > 'F') && (ch < 'a' || ch > 'f')) &&
         (ch < '0' || ch > '9'))
-      return 0;
+      return ETHC_FAIL;
   }
 
-  return 1;
+  return ETHC_SUCCESS;
 }
 
-int eth_hex_pad_left(char *rstr, const char *str, int len, size_t width) {
+int eth_hex_pad_left(char *dest, const char *str, int len, size_t width) {
   size_t fill_len = 0;
 
-  if(len < 0)
+  if (len < 0)
     len = (int)strlen(str);
 
-  if(!str || !rstr)
-    return 0;
+  ETHC_RETURN_IF_FALSE(str != NULL, ETHC_FAIL);
+  ETHC_RETURN_IF_FALSE(len != 0, ETHC_FAIL);
+  ETHC_RETURN_IF_FALSE(len < width, ETHC_FAIL);
 
-  if (len > width || !eth_is_hex(str, len, 0))
-    return 0;
+  if (!eth_is_hex(str, len, 0))
+    return ETHC_FAIL;
 
   fill_len = width - len;
-  memset(rstr, '0', fill_len);
-  memcpy(rstr + fill_len, str, len);
-  rstr[width] = '\0';
+  memset(dest, '0', fill_len);
+  memcpy(dest + fill_len, str, len);
+  dest[width] = '\0';
 
-  return 1;
+  return ETHC_SUCCESS;
 }
 
-int eth_hex_pad_right(char *rstr, const char *str, int len, size_t width) {
+int eth_hex_pad_right(char *dest, const char *str, int len, size_t width) {
   size_t fill_len = 0;
 
-  if(len < 0)
+  if (len < 0)
     len = (int)strlen(str);
 
-  if(!rstr || !str)
-    return 0;
+  ETHC_RETURN_IF_FALSE(dest != NULL, ETHC_FAIL);
+  ETHC_RETURN_IF_FALSE(str != NULL, ETHC_FAIL);
+  ETHC_RETURN_IF_FALSE(len < width, ETHC_FAIL);
 
-  if (!str || len > width || !eth_is_hex(str, len, 0))
-    return 1;
+  if (!eth_is_hex(str, len, 0))
+    return ETHC_FAIL;
 
-  strncpy(rstr, str, len);
+  strncpy(dest, str, len);
   fill_len = width - len;
-  memset(rstr + len, '0', fill_len);
-  rstr[width] = '\0';
+  memset(dest + len, '0', fill_len);
+  dest[width] = '\0';
 
-  return 1;
+  return ETHC_SUCCESS;
 }
 
-int eth_hex_from_bytes(char *rstr, const uint8_t *bytes, size_t len) {
+int eth_hex_from_bytes(char *dest, const uint8_t *bytes, size_t len) {
   size_t i = 0, j = 0;
 
-  if(!rstr || !bytes || len < 1)
-    return 0;
+  ETHC_RETURN_IF_FALSE(dest != NULL, ETHC_FAIL);
+  ETHC_RETURN_IF_FALSE(bytes != NULL, ETHC_FAIL);
 
-  while(i < len) {
-    rstr[j++] = HEXCHARS[((bytes[i] & 0xFF) >> 4) & 0xF];
-    rstr[j++] = HEXCHARS[(bytes[i] & 0xFF) & 0xF];
+  while (i < len) {
+    dest[j++] = HEXCHARS[((bytes[i] & 0xFF) >> 4) & 0xF];
+    dest[j++] = HEXCHARS[(bytes[i] & 0xFF) & 0xF];
     i++;
   }
 
-  rstr[j] = '\0';
+  dest[j] = '\0';
 
-  return 1;
+  return ETHC_SUCCESS;
 };
-
