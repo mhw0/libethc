@@ -21,10 +21,10 @@ ETHC_EXPORT int eth_bloom_from_bytes(struct eth_bloom *bloom,
                                      const uint8_t *bytes, size_t len);
 ETHC_EXPORT int eth_bloom_and(const struct eth_bloom *bloom1,
                               const struct eth_bloom *bloom2);
-ETHC_EXPORT int eth_bloom_or(struct eth_bloom *dest_bloom,
-                             const struct eth_bloom *src_bloom);
-ETHC_EXPORT int eth_bloom_copy(struct eth_bloom *dest_bloom,
-                               const struct eth_bloom *src_bloom);
+ETHC_EXPORT int eth_bloom_or(struct eth_bloom *dest,
+                             const struct eth_bloom *src);
+ETHC_EXPORT int eth_bloom_copy(struct eth_bloom *dest,
+                               const struct eth_bloom *src);
 
 #ifdef __cplusplus
 }
