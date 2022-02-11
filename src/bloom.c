@@ -23,7 +23,7 @@ int eth_bloom_from_bytes(struct eth_bloom *bloom, const uint8_t *bytes,
 
   eth_bloom_create(bloom);
 
-  if (!eth_keccak256(bytes, len, keccak))
+  if (!eth_keccak256(keccak, bytes, len))
     return ETHC_FAIL;
 
   for (i = 0; i < 6; i += 2) {

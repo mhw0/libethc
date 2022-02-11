@@ -16,7 +16,7 @@ int eth_abi_encode_event(char *dest, const char *event, int len) {
   if (len < 0)
     len = (int)strlen(event);
 
-  if (!eth_keccak256((uint8_t *)event, len, keccak))
+  if (!eth_keccak256(keccak, (uint8_t *)event, len))
     return ETHC_FAIL;
 
   return eth_hex_from_bytes(dest, keccak, 32);
@@ -31,7 +31,7 @@ int eth_abi_encode_func(char *dest, const char *func, int len) {
   if (len < 0)
     len = (int)strlen(func);
 
-  if (!eth_keccak256((uint8_t *)func, len, keccak))
+  if (!eth_keccak256(keccak, (uint8_t *)func, len))
     return ETHC_FAIL;
 
   return eth_hex_from_bytes(dest, keccak, 4);

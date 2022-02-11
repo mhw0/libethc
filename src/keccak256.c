@@ -6,18 +6,19 @@
 #define KECCAK256_HASHBITLEN 256
 #define KECCAK256_DELIMITED_SUFFIX 0x1
 
-int eth_keccak256(const uint8_t *data, size_t len, uint8_t *out) {
-  if (!data || !out)
-    return 0;
-
+int eth_keccak256(uint8_t *dest, const uint8_t *bytes, size_t len) {
   Keccak_HashInstance instance;
+
+  ETHC_RETURN_IF_FALSE(dest != NULL, ETHC_FAIL);
+  ETHC_RETURN_IF_FALSE(bytes != NULL, ETHC_FAIL);
+
   if (Keccak_HashInitialize(&instance, KECCAK256_RATE, KECCAK256_CAPACITY,
                             KECCAK256_HASHBITLEN,
                             KECCAK256_DELIMITED_SUFFIX) == KECCAK_FAIL)
-    return 0;
+    return ETHC_FAIL;
 
-  if (Keccak_HashUpdate(&instance, data, len * 8) == KECCAK_FAIL)
-    return 0;
+  if (Keccak_HashUpdate(&instance, bytes, len * 8) == KECCAK_FAIL)
+    return ETHC_FAIL;
 
-  return Keccak_HashFinal(&instance, out) == KECCAK_SUCCESS;
+  return Keccak_HashFinal(&instance, dest) == KECCAK_SUCCESS;
 }

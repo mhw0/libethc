@@ -24,7 +24,7 @@ int eth_is_checksum_address(const char *addr) {
   for (i = 0; i < 42; i++)
     addr2[i] = tolower(addr[i]);
 
-  if (!eth_keccak256(addr2 + 2, 40, keccak))
+  if (!eth_keccak256(keccak, addr2 + 2, 40))
     return ETHC_FAIL;
 
   for (i = 0; i < 20; i++) {
@@ -53,7 +53,7 @@ int eth_to_checksum_address(char *addr) {
   if (!eth_is_address(addr))
     return ETHC_FAIL;
 
-  if (!eth_keccak256((uint8_t *)addr + 2, 40, keccak))
+  if (!eth_keccak256(keccak, (uint8_t *)addr + 2, 40))
     return ETHC_FAIL;
 
   for (i = 0; i < 20; i++) {
