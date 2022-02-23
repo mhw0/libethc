@@ -3,6 +3,7 @@
 
 int main() {
   test_eth_keccak256();
+  test_eth_keccak256p();
 
   test_eth_is_hex();
   test_eth_hex_pad_left();

@@ -10,6 +10,7 @@ extern "C" {
 #include <stdint.h>
 
 ETHC_EXPORT int eth_keccak256(uint8_t *dest, const uint8_t *bytes, size_t len);
+ETHC_EXPORT int eth_keccak256p(uint8_t *dest, const uint8_t *bytes, size_t len);
 
 #ifdef __cplusplus
 }
