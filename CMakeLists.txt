@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0)
 project(
   ethc
   LANGUAGES C
-  VERSION 0.6.0)
+  VERSION 0.7.0)
 
 include(FindPkgConfig)
 include(GNUInstallDirs)
