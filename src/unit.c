@@ -4,7 +4,9 @@
 char *eth_unit_convert(const char *amount, enum eth_unit from,
                        enum eth_unit to) {
   mpf_t j, k, l;
-  char *buff;
+  char *buff, *fmt;
+
+  ETHC_RETURN_IF_FALSE(amount != NULL, NULL);
 
   if (mpf_init_set_str(j, amount, 10) == -1) {
     mpf_clear(j);
@@ -17,7 +19,7 @@ char *eth_unit_convert(const char *amount, enum eth_unit from,
   mpf_mul(j, j, k);
   mpf_div(j, j, l);
 
-  char *fmt = mpf_integer_p(j) ? "%F.0f" : "%F.18f";
+  fmt = mpf_integer_p(j) ? "%F.0f" : "%F.18f";
   if (gmp_asprintf(&buff, fmt, j) == -1) {
     mpf_clears(j, k, l, NULL);
     return NULL;
