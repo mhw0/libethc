@@ -5,6 +5,7 @@ on:
     branches:
      - main
     paths:
+    - '.github/**'
     - 'src/**'
     - 'include/**'
     - 'test/**'
@@ -13,6 +14,7 @@ on:
     branches:
      - main
     paths:
+    - '.github/**'
     - 'src/**'
     - 'include/**'
     - 'test/**'
@@ -27,18 +29,34 @@ jobs:
         run: npx envinfo
       - uses: actions/checkout@v2
         with:
+          repository: bitcoin-core/secp256k1
+          path: libsecp256k1
+      - name: Build and install libsecp256k1
+        run: |
+          brew install libtool automake
+          cd libsecp256k1
+          ./autogen.sh
+          ./configure
+          make
+          sudo make install
+          pkg-config --cflags --libs libsecp256k1
+      - uses: actions/checkout@v2
+        with:
           repository: zorgnax/libtap
           path: libtap
-      - name: Install libtap
+      - name: Build and install libtap
         run: |
-          cd libtap && make && sudo make install
+          cd libtap
+          make
+          sudo make install
           pkg-config --cflags --libs tap
       - name: Build
         run: |
-            mkdir build
-            cd build && cmake -DENABLE_TESTING=ON ..
-            make
-            ls -lh
+          mkdir build
+          cd build
+          cmake -DENABLE_TESTING=ON ..
+          make
+          ls -lh
       - name: Test
         run: |
           cd build
@@ -51,20 +69,34 @@ jobs:
         run: npx envinfo
       - uses: actions/checkout@v2
         with:
+          repository: bitcoin-core/secp256k1
+          path: libsecp256k1
+      - name: Build and install libsecp256k1
+        run: |
+          cd libsecp256k1
+          ./autogen.sh
+          ./configure
+          make
+          sudo make install
+          pkg-config --cflags --libs libsecp256k1
+      - uses: actions/checkout@v2
+        with:
           repository: zorgnax/libtap
           path: libtap
-      - name: Install libtap
+      - name: Build and install libtap
         run: |
-          cd libtap && make && sudo make install
+          cd libtap
+          make
+          sudo make install
           pkg-config --cflags --libs tap
       - name: Build
         run: |
           mkdir build
-          cd build && cmake -DENABLE_TESTING=ON ..
+          cd build
+          cmake -DENABLE_TESTING=ON ..
           make
           ls -lh
       - name: Test
         run: |
           cd build
           make test ARGS="-V"
-
