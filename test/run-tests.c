@@ -32,6 +32,8 @@ int main() {
 
   test_eth_utf8_strlen();
 
+  test_eth_ec_get_pubkey();
+
   done_testing();
   return 0;
 }

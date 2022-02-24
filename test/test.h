@@ -27,3 +27,5 @@ void test_eth_abi_encode_event(void);
 void test_eth_unit_convert(void);
 
 void test_eth_utf8_strlen(void);
+
+void test_eth_ec_get_pubkey(void);
