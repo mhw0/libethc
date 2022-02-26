@@ -33,6 +33,7 @@ int main() {
   test_eth_utf8_strlen();
 
   test_eth_ec_get_pubkey();
+  test_eth_ecdsa_sign();
 
   done_testing();
   return 0;
