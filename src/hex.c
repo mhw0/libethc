@@ -1,4 +1,5 @@
 #include <ethc/hex.h>
+#include <stdlib.h>
 #include <string.h>
 
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
@@ -22,7 +23,7 @@ int eth_is_hex(const char *str, int len, int strict) {
   if (strncasecmp(str, "0x", 2) == 0)
     prefix = 1;
 
-  if(strict && !prefix)
+  if (strict && !prefix)
     return ETHC_FAIL;
 
   if (prefix) {
@@ -95,6 +96,35 @@ int eth_hex_from_bytes(char *dest, const uint8_t *bytes, size_t len) {
   }
 
   dest[j] = '\0';
-
   return ETHC_SUCCESS;
 };
+
+int eth_hex_char_to_byte(char ch) {
+  if (ch >= '0' && ch <= '9') return ch - '0';
+  else if (ch >= 'a' && ch <= 'f') return ch - 'a' + 10;
+  else if (ch >= 'A' && ch <= 'F') return ch - 'A' + 10;
+  else return 0; // is this safe?
+}
+
+int eth_hex_to_bytes(uint8_t *dest, const char *hex, int len) {
+  size_t i;
+
+  ETHC_RETURN_IF_FALSE(dest != NULL, ETHC_FAIL);
+  ETHC_RETURN_IF_FALSE(hex != NULL, ETHC_FAIL);
+
+  if (len < 0)
+    len = strlen(hex);
+
+  if (!eth_is_hex(hex, len, 0))
+    return ETHC_FAIL;
+
+  ETHC_RETURN_IF_FALSE(len % 2 == 0, ETHC_FAIL);
+
+  for (i = 0; i < len; i += 2) {
+    uint8_t hnib = eth_hex_char_to_byte((hex[i]) & 0xff);
+    uint8_t lnib = eth_hex_char_to_byte((hex[i + 1]) & 0xff);
+    *(dest++) = (hnib << 4) | lnib;
+  }
+
+  return ETHC_SUCCESS;
+}

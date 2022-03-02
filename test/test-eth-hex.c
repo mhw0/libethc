@@ -62,3 +62,17 @@ void test_eth_hex_from_bytes(void) {
   ok(eth_hex_from_bytes(out1, in1, 3));
   is(out1, exp1);
 }
+
+void test_eth_hex_to_bytes(void) {
+  const char *in1 = "ffcfab";
+  const uint8_t exp1[] = { 0xff, 0xcf, 0xab };
+  uint8_t out1[3];
+
+  ok(eth_hex_to_bytes(out1, in1, -1) == ETHC_SUCCESS);
+  cmp_mem(out1, exp1, 3);
+
+  const char *in2 = "fff";
+  uint8_t out2[2];
+
+  ok(eth_hex_to_bytes(out2, in2, -1) == ETHC_FAIL);
+}
