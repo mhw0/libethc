@@ -10,6 +10,7 @@
 
 int eth_keccak256(uint8_t *dest, const uint8_t *bytes, size_t len) {
   Keccak_HashInstance instance;
+  int hashres = ETHC_FAIL;
 
   ETHC_RETURN_IF_FALSE(dest != NULL, ETHC_FAIL);
   ETHC_RETURN_IF_FALSE(bytes != NULL, ETHC_FAIL);
@@ -22,7 +23,8 @@ int eth_keccak256(uint8_t *dest, const uint8_t *bytes, size_t len) {
   if (Keccak_HashUpdate(&instance, bytes, len * 8) == KECCAK_FAIL)
     return ETHC_FAIL;
 
-  return Keccak_HashFinal(&instance, dest) == KECCAK_SUCCESS;
+  hashres = Keccak_HashFinal(&instance, dest) == KECCAK_SUCCESS ? ETHC_SUCCESS : ETHC_FAIL;
+  return hashres;
 }
 
 int eth_keccak256p(uint8_t *dest, const uint8_t *bytes, size_t len) {

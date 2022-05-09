@@ -6,10 +6,10 @@
 int eth_is_address(const char *addr) {
   ETHC_RETURN_IF_FALSE(addr != NULL, ETHC_FAIL);
 
-  if (!eth_is_hex(addr, 42, 1))
-    return ETHC_FAIL;
+  if (eth_is_hex(addr, 42, 1) == ETHC_FALSE)
+    return ETHC_FALSE;
 
-  return ETHC_SUCCESS;
+  return ETHC_TRUE;
 }
 
 int eth_is_checksum_address(const char *addr) {
@@ -19,7 +19,7 @@ int eth_is_checksum_address(const char *addr) {
   ETHC_RETURN_IF_FALSE(addr != NULL, ETHC_FAIL);
 
   if (!eth_is_address(addr))
-    return ETHC_FAIL;
+    return ETHC_FALSE;
 
   for (i = 0; i < 42; i++)
     addr2[i] = tolower(addr[i]);
@@ -34,14 +34,14 @@ int eth_is_checksum_address(const char *addr) {
 
     if (high_nibble >= 8 && islower(*addr_ptr) ||
         high_nibble < 8 && isupper(*addr_ptr))
-      return ETHC_FAIL;
+      return ETHC_FALSE;
 
     if (low_nibble >= 8 && islower(*(addr_ptr + 1)) ||
         low_nibble < 8 && isupper(*(addr_ptr + 1)))
-      return ETHC_FAIL;
+      return ETHC_FALSE;
   }
 
-  return ETHC_SUCCESS;
+  return ETHC_TRUE;
 }
 
 int eth_to_checksum_address(char *addr) {

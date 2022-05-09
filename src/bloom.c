@@ -61,9 +61,9 @@ int eth_bloom_and(const struct eth_bloom *bloom1,
 
   for (i = 0; i < BITSETS; i++)
     if (bloom1->bitsets[i] != tmp_bloom.bitsets[i])
-      return ETHC_FAIL;
+      return ETHC_FALSE;
 
-  return ETHC_SUCCESS;
+  return ETHC_TRUE;
 }
 
 int eth_bloom_or(struct eth_bloom *dest,

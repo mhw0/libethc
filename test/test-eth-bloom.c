@@ -27,7 +27,7 @@ void test_eth_bloom_and(void) {
   eth_bloom_from_bytes(&bloom1, address, 20);
   eth_bloom_from_bytes(&bloom2, address, 20);
 
-  ok(eth_bloom_and(&bloom1, &bloom2) == 1);
+  ok(eth_bloom_and(&bloom1, &bloom2) == ETHC_TRUE);
 }
 
 void test_eth_bloom_or(void) {
@@ -39,6 +39,6 @@ void test_eth_bloom_or(void) {
   eth_bloom_or(&bloom3, &bloom1);
   eth_bloom_or(&bloom3, &bloom2);
 
-  ok(eth_bloom_and(&bloom3, &bloom1) == 1);
-  ok(eth_bloom_and(&bloom3, &bloom2) == 1);
+  ok(eth_bloom_and(&bloom3, &bloom1) == ETHC_TRUE);
+  ok(eth_bloom_and(&bloom3, &bloom2) == ETHC_TRUE);
 }

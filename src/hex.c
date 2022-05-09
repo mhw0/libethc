@@ -18,13 +18,13 @@ int eth_is_hex(const char *str, int len, int strict) {
     len = (int)strlen(str);
 
   ETHC_RETURN_IF_FALSE(str != NULL, ETHC_FAIL);
-  ETHC_RETURN_IF_FALSE(len != 0, ETHC_FAIL);
+  ETHC_RETURN_IF_FALSE(len != 0, ETHC_FALSE);
 
   if (strncasecmp(str, "0x", 2) == 0)
     prefix = 1;
 
   if (strict && !prefix)
-    return ETHC_FAIL;
+    return ETHC_FALSE;
 
   if (prefix) {
     str += 2;
@@ -35,10 +35,10 @@ int eth_is_hex(const char *str, int len, int strict) {
     char ch = str[i];
     if (((ch < 'A' || ch > 'F') && (ch < 'a' || ch > 'f')) &&
         (ch < '0' || ch > '9'))
-      return ETHC_FAIL;
+      return ETHC_FALSE;
   }
 
-  return ETHC_SUCCESS;
+  return ETHC_TRUE;
 }
 
 int eth_hex_pad_left(char *dest, const char *str, int len, size_t width) {
@@ -100,10 +100,14 @@ int eth_hex_from_bytes(char *dest, const uint8_t *bytes, size_t len) {
 };
 
 int eth_hex_char_to_byte(char ch) {
-  if (ch >= '0' && ch <= '9') return ch - '0';
-  else if (ch >= 'a' && ch <= 'f') return ch - 'a' + 10;
-  else if (ch >= 'A' && ch <= 'F') return ch - 'A' + 10;
-  else return 0; // is this safe?
+  if (ch >= '0' && ch <= '9')
+    return ch - '0';
+  else if (ch >= 'a' && ch <= 'f')
+    return ch - 'a' + 10;
+  else if (ch >= 'A' && ch <= 'F')
+    return ch - 'A' + 10;
+  else
+    return 0; // is this safe?
 }
 
 int eth_hex_to_bytes(uint8_t *dest, const char *hex, int len) {

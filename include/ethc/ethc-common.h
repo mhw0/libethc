@@ -9,8 +9,10 @@
 #define ETHC_EXPORT
 #endif
 
-#define ETHC_SUCCESS 1
-#define ETHC_FAIL 0
+#define ETHC_TRUE    (1u << 1)
+#define ETHC_FALSE   (1u << 2)
+#define ETHC_SUCCESS (1u << 3)
+#define ETHC_FAIL    (1u << 4)
 
 #define ETHC_RETURN_IF_FALSE(expr, val)                                        \
   if (!(expr))                                                                 \
