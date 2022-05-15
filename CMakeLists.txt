@@ -7,6 +7,12 @@ project(
 include(FindPkgConfig)
 include(GNUInstallDirs)
 
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Debug)
+endif()
+
 set(ETHC_SOURCE_FILES
     src/abi.c
     src/account.c
