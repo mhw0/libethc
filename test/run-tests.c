@@ -36,6 +36,8 @@ int main() {
   test_eth_ec_get_pubkey();
   test_eth_ecdsa_sign();
 
+  test_eth_account_from_privkey();
+
   done_testing();
   return 0;
 }

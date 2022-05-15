@@ -6,6 +6,7 @@ pkg_check_modules(LIBTAP REQUIRED tap)
 set(TEST_SOURCE_FILES
     run-tests.c
     test-eth-bloom.c
+    test-eth-account.c
     test-eth-abi.c
     test-eth-ecc.c
     test-eth-unit.c

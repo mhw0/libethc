@@ -31,3 +31,5 @@ void test_eth_utf8_strlen(void);
 
 void test_eth_ec_get_pubkey(void);
 void test_eth_ecdsa_sign(void);
+
+void test_eth_account_from_privkey(void);
