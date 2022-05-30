@@ -17,7 +17,7 @@ int eth_is_hex(const char *str, int len, int strict) {
   if (len < 0)
     len = (int)strlen(str);
 
-  ETHC_RETURN_IF_FALSE(str != NULL, ETHC_FAIL);
+  ETHC_RETURN_IF_FALSE(str != NULL, ETHC_FALSE);
   ETHC_RETURN_IF_FALSE(len != 0, ETHC_FALSE);
 
   if (strncasecmp(str, "0x", 2) == 0)
