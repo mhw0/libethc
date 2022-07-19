@@ -36,7 +36,7 @@ jobs:
           brew install libtool automake
           cd libsecp256k1
           ./autogen.sh
-          ./configure
+          ./configure --enable-module-recovery
           make
           sudo make install
           pkg-config --cflags --libs libsecp256k1
@@ -75,7 +75,7 @@ jobs:
         run: |
           cd libsecp256k1
           ./autogen.sh
-          ./configure
+          ./configure --enable-module-recovery
           make
           sudo make install
           pkg-config --cflags --libs libsecp256k1
