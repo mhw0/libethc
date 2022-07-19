@@ -8,7 +8,7 @@ set(TEST_SOURCE_FILES
     test-eth-bloom.c
     test-eth-account.c
     test-eth-abi.c
-    test-eth-ecc.c
+    test-eth-ecdsa.c
     test-eth-unit.c
     test-eth-utf8.c
     test-eth-keccak256.c

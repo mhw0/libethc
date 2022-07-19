@@ -1,5 +1,5 @@
 #include <ethc/account.h>
-#include <ethc/ecc.h>
+#include <ethc/ecdsa.h>
 #include <ethc/hex.h>
 #include <ethc/internals.h>
 #include <ethc/keccak256.h>
@@ -25,7 +25,7 @@ int eth_account_create(struct eth_account *dest, const uint8_t *entropy) {
   op = eth_keccak256(privkey, r, 64);
   ETHC_RETURN_IF_FALSE(op == ETHC_SUCCESS, ETHC_FAIL);
 
-  op = eth_ec_get_pubkey(pubkey, privkey);
+  op = eth_ecdsa_pubkey_get(pubkey, privkey);
   ETHC_RETURN_IF_FALSE(op == ETHC_SUCCESS, ETHC_FAIL);
 
   op = eth_keccak256(keccak, pubkey, 64);
@@ -45,7 +45,7 @@ int eth_account_from_privkey(struct eth_account *dest, const uint8_t *privkey) {
   ETHC_RETURN_IF_FALSE(dest != NULL, ETHC_FAIL);
   ETHC_RETURN_IF_FALSE(privkey != NULL, ETHC_FAIL);
 
-  op = eth_ec_get_pubkey(pubkey, privkey);
+  op = eth_ecdsa_pubkey_get(pubkey, privkey);
   ETHC_RETURN_IF_FALSE(op == ETHC_SUCCESS, ETHC_FAIL);
 
   op = eth_keccak256(keccak, pubkey, 64);
@@ -79,7 +79,7 @@ int eth_account_get_pubkey(char *dest, const struct eth_account *src) {
   ETHC_RETURN_IF_FALSE(dest != NULL, ETHC_FAIL);
   ETHC_RETURN_IF_FALSE(src != NULL, ETHC_FAIL);
 
-  op = eth_ec_get_pubkey(pubkey, src->privkey);
+  op = eth_ecdsa_pubkey_get(pubkey, src->privkey);
   ETHC_RETURN_IF_FALSE(op == ETHC_SUCCESS, ETHC_FAIL);
 
   return eth_hex_from_bytes(dest, pubkey, 64);

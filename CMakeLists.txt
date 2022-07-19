@@ -17,7 +17,7 @@ set(ETHC_SOURCE_FILES
     src/abi.c
     src/account.c
     src/address.c
-    src/ecc.c
+    src/ecdsa.c
     src/bloom.c
     src/internals.c
     src/unit.c
