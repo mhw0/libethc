@@ -14,9 +14,9 @@ void test_eth_account_from_privkey(void) {
                          0x2e, 0xe6, 0x5b, 0x63, 0x9b, 0x88, 0x8f, 0xfa};
 
   ok(eth_account_from_privkey(&account, privkey) == ETHC_SUCCESS);
-  ok(eth_account_get_privkey(sprivkey, &account) == ETHC_SUCCESS);
-  ok(eth_account_get_pubkey(spubkey, &account) == ETHC_SUCCESS);
-  ok(eth_account_get_address(saddress, &account) == ETHC_SUCCESS);
+  ok(eth_account_privkey_get(sprivkey, &account) == ETHC_SUCCESS);
+  ok(eth_account_pubkey_get(spubkey, &account) == ETHC_SUCCESS);
+  ok(eth_account_address_get(saddress, &account) == ETHC_SUCCESS);
 
   is(sprivkey,
      "dcdf91b7b29c4c0677331b655c0c6cf4e71b6f8719273a112ee65b639b888ffa");
@@ -44,7 +44,7 @@ void test_eth_account_sign(void) {
                    0x9e, 0x61, 0x5f, 0x86, 0xa6, 0xaa, 0x5e, 0xd0};
 
   ok(eth_account_from_privkey(&account, privkey) == ETHC_SUCCESS);
-  ok(eth_account_sign(&signed_data, (const struct eth_account *)&account, data,
+  ok(eth_account_sign(&signed_data, (const struct eth_account*)&account, data,
                       3));
   cmp_mem(signed_data.r, r, 32);
   cmp_mem(signed_data.s, s, 32);

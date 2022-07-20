@@ -6,6 +6,7 @@ extern "C" {
 #endif
 
 #include "ethc-common.h"
+#include <ethc/ecdsa.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -15,21 +16,15 @@ struct eth_account {
   uint8_t pubkey[64];
 };
 
-struct eth_signed {
-  uint8_t hash[32];
-  uint8_t r[32];
-  uint8_t s[32];
-};
-
 ETHC_EXPORT int eth_account_create(struct eth_account *dest,
                                    const uint8_t *entropy);
 ETHC_EXPORT int eth_account_from_privkey(struct eth_account *dest,
                                          const uint8_t *privkey);
-ETHC_EXPORT int eth_account_get_address(char *dest,
+ETHC_EXPORT int eth_account_address_get(char *dest,
                                         const struct eth_account *src);
-ETHC_EXPORT int eth_account_get_privkey(char *dest,
+ETHC_EXPORT int eth_account_privkey_get(char *dest,
                                         const struct eth_account *src);
-ETHC_EXPORT int eth_account_get_pubkey(char *dest,
+ETHC_EXPORT int eth_account_pubkey_get(char *dest,
                                        const struct eth_account *src);
 ETHC_EXPORT int eth_account_sign(struct eth_signed *dest,
                                  const struct eth_account *account,

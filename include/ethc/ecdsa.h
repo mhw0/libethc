@@ -15,6 +15,8 @@ struct eth_ecdsa_signature {
   int recid;
 };
 
+#define eth_signed eth_ecdsa_signature
+
 int eth_ecdsa_pubkey_get(uint8_t *dest, const uint8_t *privkey);
 int eth_ecdsa_sign(struct eth_ecdsa_signature *dest, const uint8_t *privkey,
                    const uint8_t *data32);
