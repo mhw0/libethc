@@ -119,10 +119,18 @@ int eth_hex_to_bytes(uint8_t *dest, const char *hex, int len) {
   if (len < 0)
     len = strlen(hex);
 
-  if (!eth_is_hex(hex, len, 0))
-    return ETHC_FAIL;
+  ETHC_RETURN_IF_FALSE(eth_is_hex(hex, len, 0), ETHC_FAIL);
 
-  ETHC_RETURN_IF_FALSE(len % 2 == 0, ETHC_FAIL);
+  if (len % 2 != 0) {
+    char *buf = (char*)malloc(len + 1);
+    eth_hex_pad_left(buf, hex, len, len + 1);
+    hex = buf;
+  }
+
+  if (strncasecmp(hex, "0x", 2) == 0) {
+    hex += 2;
+    len -= 2;
+  }
 
   for (i = 0; i < len; i += 2) {
     uint8_t hnib = eth_hex_char_to_byte((hex[i]) & 0xff);
