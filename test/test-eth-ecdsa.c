@@ -16,7 +16,7 @@ void test_eth_ecdsa_pubkey_get(void) {
       0xec, 0x2c, 0xf0, 0x36, 0xab, 0x74, 0x09, 0x8a, 0x77, 0xa6, 0xb7,
       0xf1, 0x00, 0x34, 0x86, 0xe1, 0x73, 0xb2, 0x9a, 0xa7};
 
-  ok(eth_ecdsa_pubkey_get(out1, in1) == ETHC_SUCCESS);
+  ok(eth_ecdsa_pubkey_get(out1, in1) == 1);
   cmp_mem(out1, exp1, 64);
 }
 
@@ -38,6 +38,6 @@ void test_eth_ecdsa_sign(void) {
 
       .recid = 0x01};
 
-  ok(eth_ecdsa_sign(&sig, data32, data32) == ETHC_SUCCESS);
+  ok(eth_ecdsa_sign(&sig, data32, data32) == 1);
   cmp_mem(&sig, &exp_sig, sizeof(struct eth_ecdsa_signature));
 }

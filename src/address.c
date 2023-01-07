@@ -4,28 +4,30 @@
 #include <ethc/keccak256.h>
 
 int eth_is_address(const char *addr) {
-  ETHC_RETURN_IF_FALSE(addr != NULL, ETHC_FAIL);
+  if (addr == NULL)
+    return -1;
 
-  if (eth_is_hex(addr, 42, 1) == ETHC_FALSE)
-    return ETHC_FALSE;
+  if (eth_is_hex(addr, 42, 1) != 1)
+    return -1;
 
-  return ETHC_TRUE;
+  return 1;
 }
 
 int eth_is_checksum_address(const char *addr) {
   uint8_t addr2[42], keccak[32];
   size_t i;
 
-  ETHC_RETURN_IF_FALSE(addr != NULL, ETHC_FAIL);
+  if (addr == NULL)
+    return - 1;
 
-  if (!eth_is_address(addr))
-    return ETHC_FALSE;
+  if (eth_is_address(addr) != 1)
+    return -1;
 
   for (i = 0; i < 42; i++)
     addr2[i] = tolower(addr[i]);
 
-  if (!eth_keccak256(keccak, addr2 + 2, 40))
-    return ETHC_FAIL;
+  if (eth_keccak256(keccak, addr2 + 2, 40) != 1)
+    return -1;
 
   for (i = 0; i < 20; i++) {
     const char *addr_ptr = addr + (i * 2) + 2;
@@ -34,27 +36,28 @@ int eth_is_checksum_address(const char *addr) {
 
     if (high_nibble >= 8 && islower(*addr_ptr) ||
         high_nibble < 8 && isupper(*addr_ptr))
-      return ETHC_FALSE;
+      return 0;
 
     if (low_nibble >= 8 && islower(*(addr_ptr + 1)) ||
         low_nibble < 8 && isupper(*(addr_ptr + 1)))
-      return ETHC_FALSE;
+      return 0;
   }
 
-  return ETHC_TRUE;
+  return 1;
 }
 
 int eth_to_checksum_address(char *addr) {
   size_t i;
   uint8_t keccak[32];
 
-  ETHC_RETURN_IF_FALSE(addr != NULL, ETHC_FAIL);
+  if (addr == NULL)
+    return -1;
 
-  if (!eth_is_address(addr))
-    return ETHC_FAIL;
+  if (eth_is_address(addr) != 1)
+    return -1;
 
-  if (!eth_keccak256(keccak, (uint8_t *)addr + 2, 40))
-    return ETHC_FAIL;
+  if (eth_keccak256(keccak, (uint8_t *)addr + 2, 40) != 1)
+    return -1;
 
   for (i = 0; i < 20; i++) {
     char *addr_ptr = addr + (i * 2) + 2;
@@ -72,5 +75,5 @@ int eth_to_checksum_address(char *addr) {
       *(addr_ptr + 1) = tolower(*(addr_ptr + 1));
   }
 
-  return ETHC_SUCCESS;
+  return 1;
 }

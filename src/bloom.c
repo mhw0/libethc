@@ -1,15 +1,16 @@
 #include <ethc/bloom.h>
 #include <ethc/keccak256.h>
 
-int eth_bloom_create(struct eth_bloom *bloom) {
+int eth_bloom_init(struct eth_bloom *dest) {
   size_t i;
 
-  ETHC_RETURN_IF_FALSE(bloom != NULL, ETHC_FAIL);
+  if (dest == NULL)
+    return -1;
 
   for (i = 0; i < BITSETS; i++)
-    bloom->bitsets[i] = 0;
+    dest->bitsets[i] = 0;
 
-  return ETHC_SUCCESS;
+  return 1;
 }
 
 int eth_bloom_from_bytes(struct eth_bloom *bloom, const uint8_t *bytes,
@@ -18,13 +19,14 @@ int eth_bloom_from_bytes(struct eth_bloom *bloom, const uint8_t *bytes,
   uint16_t bitpos;
   size_t i;
 
-  ETHC_RETURN_IF_FALSE(bloom != NULL, ETHC_FAIL);
-  ETHC_RETURN_IF_FALSE(bytes != NULL, ETHC_FAIL);
+  if (bloom == NULL || bytes == NULL)
+    return -1;
 
-  eth_bloom_create(bloom);
+  if (eth_bloom_init(bloom) != 1)
+    return -1;
 
   if (!eth_keccak256(keccak, bytes, len))
-    return ETHC_FAIL;
+    return 1;
 
   for (i = 0; i < 6; i += 2) {
     bitpos = ((keccak[i] & 0xFF) << 0x8) + (keccak[i + 1] & 0xFF) & 0x7ff;
@@ -32,50 +34,54 @@ int eth_bloom_from_bytes(struct eth_bloom *bloom, const uint8_t *bytes,
     bloom->bitsets[bitset] |= (1ULL << (bitpos % BITS_PER_BITSET));
   }
 
-  return ETHC_SUCCESS;
+  return 1;
 }
 
 int eth_bloom_copy(struct eth_bloom *dest, const struct eth_bloom *src) {
   size_t i;
 
-  ETHC_RETURN_IF_FALSE(dest != NULL, ETHC_FAIL);
-  ETHC_RETURN_IF_FALSE(src != NULL, ETHC_FAIL);
+  if (dest == NULL || src == NULL)
+    return -1;
 
   for (i = 0; i < BITSETS; i++)
     dest->bitsets[i] = src->bitsets[i];
 
-  return ETHC_SUCCESS;
+  return 1;
 }
 
-int eth_bloom_and(const struct eth_bloom *bloom1,
-                  const struct eth_bloom *bloom2) {
-  struct eth_bloom tmp_bloom;
+int eth_bloom_and(const struct eth_bloom *lhs,
+                  const struct eth_bloom *rhs) {
+  struct eth_bloom tmpbloom;
   size_t i;
 
-  ETHC_RETURN_IF_FALSE(bloom1 != NULL, ETHC_FAIL);
-  ETHC_RETURN_IF_FALSE(bloom2 != NULL, ETHC_FAIL);
+  if (lhs == NULL || rhs == NULL)
+    return -1;
 
-  eth_bloom_create(&tmp_bloom);
-  eth_bloom_copy(&tmp_bloom, bloom1);
-  eth_bloom_or(&tmp_bloom, bloom2);
+  if (eth_bloom_init(&tmpbloom) != 1)
+    return -1;
+
+  if (eth_bloom_copy(&tmpbloom, lhs) != 1)
+    return -1;
+
+  if (eth_bloom_or(&tmpbloom, rhs) != 1)
+    return -1;
 
   for (i = 0; i < BITSETS; i++)
-    if (bloom1->bitsets[i] != tmp_bloom.bitsets[i])
-      return ETHC_FALSE;
+    if (lhs->bitsets[i] != tmpbloom.bitsets[i])
+      return 0;
 
-  return ETHC_TRUE;
+  return 1;
 }
 
-int eth_bloom_or(struct eth_bloom *dest,
-                 const struct eth_bloom *src) {
+int eth_bloom_or(struct eth_bloom *lhs,
+                 const struct eth_bloom *rhs) {
   size_t i;
 
-  ETHC_RETURN_IF_FALSE(dest != NULL, ETHC_FAIL);
-  ETHC_RETURN_IF_FALSE(src != NULL, ETHC_FAIL);
+  if (lhs == NULL || rhs == NULL)
+    return -1;
 
-  for (i = 0; i < BITSETS; i++) {
-    dest->bitsets[i] |= src->bitsets[i];
-  }
+  for (i = 0; i < BITSETS; i++)
+    lhs->bitsets[i] |= rhs->bitsets[i];
 
-  return ETHC_SUCCESS;
+  return 1;
 }

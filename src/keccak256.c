@@ -10,35 +10,33 @@
 
 int eth_keccak256(uint8_t *dest, const uint8_t *bytes, size_t len) {
   Keccak_HashInstance instance;
-  int hashres = ETHC_FAIL;
 
-  ETHC_RETURN_IF_FALSE(dest != NULL, ETHC_FAIL);
-  ETHC_RETURN_IF_FALSE(bytes != NULL, ETHC_FAIL);
+  if (dest == NULL || bytes == NULL)
+    return -1;
 
   if (Keccak_HashInitialize(&instance, KECCAK256_RATE, KECCAK256_CAPACITY,
                             KECCAK256_HASHBITLEN,
                             KECCAK256_DELIMITED_SUFFIX) == KECCAK_FAIL)
-    return ETHC_FAIL;
+    return -1;
 
   if (Keccak_HashUpdate(&instance, bytes, len * 8) == KECCAK_FAIL)
-    return ETHC_FAIL;
+    return -1;
 
-  hashres = Keccak_HashFinal(&instance, dest) == KECCAK_SUCCESS ? ETHC_SUCCESS : ETHC_FAIL;
-  return hashres;
+  return Keccak_HashFinal(&instance, dest) == KECCAK_SUCCESS ? 1 : -1;
 }
 
 int eth_keccak256p(uint8_t *dest, const uint8_t *bytes, size_t len) {
   int size, r;
   char *sig, *tmp;
 
-  ETHC_RETURN_IF_FALSE(dest != NULL, ETHC_FAIL);
-  ETHC_RETURN_IF_FALSE(bytes != NULL, ETHC_FAIL);
+  if (dest == NULL || bytes == NULL)
+    return -1;
 
   size = gmp_asprintf(&sig, "\x19" "Ethereum Signed Message:\n%llu", len);
   tmp = realloc(sig, size + len);
   if(tmp == NULL) {
     free(sig);
-    return ETHC_FAIL;
+    return -1;
   }
   sig = tmp;
 

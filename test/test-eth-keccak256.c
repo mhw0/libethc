@@ -10,7 +10,7 @@ void test_eth_keccak256(void) {
                        0xe5, 0x00, 0xb6, 0x53, 0xca, 0x82, 0x27, 0x3b,
                        0x7b, 0xfa, 0xd8, 0x04, 0x5d, 0x85, 0xa4, 0x70};
 
-  ok(eth_keccak256(out1, in1, 0) == ETHC_SUCCESS);
+  ok(eth_keccak256(out1, in1, 0) == 1);
   cmp_mem(out1, exp1, 32);
 
   const uint8_t in2[4] = {0x74, 0x65, 0x73, 0x74};
@@ -20,7 +20,7 @@ void test_eth_keccak256(void) {
                        0xed, 0xef, 0x11, 0xb2, 0x11, 0x9b, 0x40, 0x88,
                        0xb8, 0x96, 0x64, 0xfb, 0x9a, 0x3c, 0xb6, 0x58};
 
-  ok(eth_keccak256(out2, in2, 4) == ETHC_SUCCESS);
+  ok(eth_keccak256(out2, in2, 4) == 1);
   cmp_mem(out2, exp2, 32);
 }
 
@@ -33,6 +33,6 @@ void test_eth_keccak256p(void) {
     0x2a, 0xd4, 0x6e, 0xf0, 0x88, 0x11, 0x0e, 0x95
   };
 
-  ok(eth_keccak256p(out1, in1, 4) == ETHC_SUCCESS);
+  ok(eth_keccak256p(out1, in1, 4) == 1);
   cmp_mem(out1, exp1, 32);
 }

@@ -4,14 +4,18 @@
 int ethc_rand(uint8_t *bytes, size_t len) {
   FILE *fd;
   int r;
-  ETHC_RETURN_IF_FALSE(bytes != NULL, ETHC_FAIL);
+
+  if (bytes == NULL)
+    return -1;
 
   fd = fopen("/dev/urandom", "r");
-  ETHC_RETURN_IF_FALSE(fd >= 0, ETHC_FAIL);
+  if (fd < 0)
+    return -1;
 
   r = fread(bytes, 1, len, fd);
-  ETHC_RETURN_IF_FALSE(r > 0, ETHC_FAIL);
+  if (r <= 0)
+    return -1;
 
   fclose(fd);
-  return ETHC_SUCCESS;
+  return 1;
 }

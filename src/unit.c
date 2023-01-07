@@ -6,7 +6,8 @@ char *eth_unit_convert(const char *amount, enum eth_unit from,
   mpf_t j, k, l;
   char *buff, *fmt;
 
-  ETHC_RETURN_IF_FALSE(amount != NULL, NULL);
+  if (amount == NULL)
+    return NULL;
 
   if (mpf_init_set_str(j, amount, 10) == -1) {
     mpf_clear(j);
