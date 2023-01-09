@@ -96,7 +96,7 @@ int eth_hex_from_bytes(char *dest, const uint8_t *bytes, size_t len) {
   }
 
   dest[j] = '\0';
-  return 1;
+  return j;
 };
 
 int eth_hex_char_to_byte(char ch) {
@@ -139,5 +139,5 @@ int eth_hex_to_bytes(uint8_t *dest, const char *hex, int len) {
     *(dest++) = (hnib << 4) | lnib;
   }
 
-  return 1;
+  return len / 2;
 }

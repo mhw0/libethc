@@ -59,7 +59,7 @@ void test_eth_hex_from_bytes(void) {
   const char *exp1 = "ffaa03";
   char out1[7];
 
-  ok(eth_hex_from_bytes(out1, in1, 3) == 1);
+  ok(eth_hex_from_bytes(out1, in1, 3) == 6);
   is(out1, exp1);
 }
 
@@ -68,20 +68,20 @@ void test_eth_hex_to_bytes(void) {
   uint8_t out1[3];
   const uint8_t exp1[] = {0xff, 0xcf, 0xab};
 
-  ok(eth_hex_to_bytes(out1, in1, 6) == 1);
+  ok(eth_hex_to_bytes(out1, in1, 6) == 3);
   cmp_mem(out1, exp1, 3);
 
   const char *in2 = "ffcfab";
   uint8_t out2[3];
   const uint8_t exp2[] = {0xff, 0xcf, 0xab};
 
-  ok(eth_hex_to_bytes(out2, in2, -1) == 1);
+  ok(eth_hex_to_bytes(out2, in2, -1) == 3);
   cmp_mem(out2, exp2, 3);
 
   const char *in3 = "ffabc";
-  uint8_t out3[2];
+  uint8_t out3[3];
   const uint8_t exp3[] = {0x0f, 0xfa, 0xbc};
 
-  ok(eth_hex_to_bytes(out3, in3, -1) == 1);
+  ok(eth_hex_to_bytes(out3, in3, -1) == 2);
   cmp_mem(out3, exp3, 3);
 }

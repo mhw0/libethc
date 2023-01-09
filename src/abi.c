@@ -20,7 +20,7 @@ int eth_abi_encode_event(char *dest, const char *event, int len) {
   if (eth_keccak256(keccak, (uint8_t*)event, len) != 1)
     return -1;
 
-  return eth_hex_from_bytes(dest, keccak, 32);
+  return eth_hex_from_bytes(dest, keccak, 32) > 0;
 }
 
 int eth_abi_encode_func(char *dest, const char *func, int len) {
@@ -35,7 +35,7 @@ int eth_abi_encode_func(char *dest, const char *func, int len) {
   if (eth_keccak256(keccak, (uint8_t *)func, len) != 1)
     return -1;
 
-  return eth_hex_from_bytes(dest, keccak, 4);
+  return eth_hex_from_bytes(dest, keccak, 4) > 0;
 }
 
 int eth_abi_encode_bytes(char *dest, const uint8_t *bytes, uint8_t size) {
@@ -47,7 +47,7 @@ int eth_abi_encode_bytes(char *dest, const uint8_t *bytes, uint8_t size) {
   if (size < 0 || size > 32)
     return - 1;
 
-  if (eth_hex_from_bytes(tmp, bytes, size) != 1)
+  if (eth_hex_from_bytes(tmp, bytes, size) <= 0)
     return -1;
 
   return eth_hex_pad_right(dest, tmp, -1, 64);
@@ -61,7 +61,7 @@ char *eth_abi_encode_bytesd(const uint8_t *bytes, size_t len) {
   if (bytes == NULL)
     return NULL;
 
-  if (eth_hex_from_bytes(tmp, bytes, len) != 1)
+  if (eth_hex_from_bytes(tmp, bytes, len) <= 0)
     return NULL;
 
   mpz_init_set_ui(j, len);

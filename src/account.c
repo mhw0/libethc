@@ -62,14 +62,14 @@ int eth_account_address_get(char *dest, const struct eth_account *src) {
   if (dest == NULL || src == NULL)
     return -1;
 
-  return eth_hex_from_bytes(dest, src->address, 20);
+  return eth_hex_from_bytes(dest, src->address, 20) > 0;
 }
 
 int eth_account_privkey_get(char *dest, const struct eth_account *src) {
   if (dest == NULL || src == NULL)
     return -1;
 
-  return eth_hex_from_bytes(dest, src->privkey, 32);
+  return eth_hex_from_bytes(dest, src->privkey, 32) > 0;
 }
 
 int eth_account_pubkey_get(char *dest, const struct eth_account *src) {
@@ -82,7 +82,7 @@ int eth_account_pubkey_get(char *dest, const struct eth_account *src) {
   if (eth_ecdsa_pubkey_get(pubkey, src->privkey) != 1)
     return -1;
 
-  return eth_hex_from_bytes(dest, pubkey, 64);
+  return eth_hex_from_bytes(dest, pubkey, 64) > 0;
 }
 
 int eth_account_sign(struct eth_signed *dest, const struct eth_account *account,
