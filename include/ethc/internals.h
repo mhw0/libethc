@@ -10,6 +10,7 @@ extern "C" {
 #include <stdint.h>
 
 ETHC_EXPORT int ethc_rand(uint8_t *bytes, size_t len);
+ETHC_EXPORT int ethc_strncasecmp(const char *s1, const char *s2, size_t len);
 
 #ifdef __cplusplus
 }

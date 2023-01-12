@@ -5,25 +5,25 @@
 
 void test_eth_is_hex(void) {
   const char *in1 = "";
-  ok(eth_is_hex(in1, strlen(in1), 0) == -1);
+  ok(eth_is_hex(in1, strlen(in1)) == -1);
 
   const char *in2 = "0xffff00";
-  ok(eth_is_hex(in2, -1, 1) == 1);
+  ok(eth_is_hex(in2, -1) == 1);
 
   const char *in3 = "0xFFFF00";
-  ok(eth_is_hex(in3, -1, 1) == 1);
+  ok(eth_is_hex(in3, -1) == 1);
 
   const char *in4 = "0XFFFF00";
-  ok(eth_is_hex(in4, -1, 1) == 1);
+  ok(eth_is_hex(in4, -1) == 1);
 
   const char *in5 = "ffff00";
-  ok(eth_is_hex(in5, -1, 1) == 0);
+  ok(eth_is_hex(in5, -1) == 1);
 
   const char *in6 = "FFFF00";
-  ok(eth_is_hex(in6, -1, 0) == 1);
+  ok(eth_is_hex(in6, -1) == 1);
 
   const char *in7 = "0xffff00nonhex";
-  ok(eth_is_hex(in7, 8, 1) == 1);
+  ok(eth_is_hex(in7, 8) == 1);
 }
 
 void test_eth_hex_pad_left(void) {
@@ -42,7 +42,7 @@ void test_eth_hex_pad_left(void) {
 
 void test_eth_hex_pad_right(void) {
   const char *in1 = "ff";
-  char out1[5]; // TODO
+  char out1[5];
   const char *exp1 = "ff00";
   ok(eth_hex_pad_right(out1, in1, -1, 4) == 1);
   is(out1, exp1);

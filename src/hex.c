@@ -1,18 +1,13 @@
+#include <ethc/internals.h>
 #include <ethc/hex.h>
 #include <stdlib.h>
 #include <string.h>
 
-#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
-#include <strings.h>
-#elif defined(_MSC_VER)
-#define strncasecmp _strnicmp
-#endif
-
 #define HEXCHARS "0123456789abcdef"
 
-int eth_is_hex(const char *str, int len, int strict) {
-  int prefix = 0;
-  size_t i;
+int eth_is_hex(const char *str, int len) {
+  int i;
+  char ch;
 
   if (str == NULL || len == 0)
     return -1;
@@ -20,19 +15,13 @@ int eth_is_hex(const char *str, int len, int strict) {
   if (len < 0)
     len = (int)strlen(str);
 
-  if (strncasecmp(str, "0x", 2) == 0)
-    prefix = 1;
-
-  if (strict && !prefix)
-    return 0;
-
-  if (prefix) {
+  if (ethc_strncasecmp(str, "0x", 2) == 0) {
     str += 2;
     len -= 2;
   }
 
   for (i = 0; i < len; i++) {
-    char ch = str[i];
+    ch = str[i];
     if (((ch < 'A' || ch > 'F') && (ch < 'a' || ch > 'f')) &&
         (ch < '0' || ch > '9'))
       return 0;
@@ -50,13 +39,14 @@ int eth_hex_pad_left(char *dest, const char *str, int len, size_t width) {
   if (dest == NULL || str == NULL || len == 0 || len > width)
     return -1;
 
-  if (eth_is_hex(str, len, 0) != 1)
+  if (eth_is_hex(str, len) != 1)
     return -1;
 
   zeros = width - len;
   memset(dest, '0', zeros);
   memcpy(dest + zeros, str, len);
   dest[width] = '\0';
+
   return 1;
 }
 
@@ -72,7 +62,7 @@ int eth_hex_pad_right(char *dest, const char *str, int len, size_t width) {
   if (dest == NULL || str == NULL || len == 0 || len > width)
     return -1;
 
-  if (eth_is_hex(str, len, 0) == 0)
+  if (eth_is_hex(str, len) == 0)
     return -1;
 
   strncpy(dest, str, len);
@@ -119,7 +109,7 @@ int eth_hex_to_bytes(uint8_t *dest, const char *hex, int len) {
   if (len < 0)
     len = strlen(hex);
 
-  if (eth_is_hex(hex, len, 0) == 0)
+  if (eth_is_hex(hex, len) <= 0)
     return -1;
 
   if (len % 2 != 0) {
@@ -128,7 +118,7 @@ int eth_hex_to_bytes(uint8_t *dest, const char *hex, int len) {
     hex = buf;
   }
 
-  if (strncasecmp(hex, "0x", 2) == 0) {
+  if (ethc_strncasecmp(hex, "0x", 2) == 0) {
     hex += 2;
     len -= 2;
   }

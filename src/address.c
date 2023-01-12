@@ -2,44 +2,47 @@
 #include <ethc/address.h>
 #include <ethc/hex.h>
 #include <ethc/keccak256.h>
+#include <ethc/internals.h>
 
 int eth_is_address(const char *addr) {
   if (addr == NULL)
     return -1;
 
-  if (eth_is_hex(addr, 42, 1) != 1)
-    return -1;
+  if (ethc_strncasecmp(addr, "0x", 2) == 0)
+    return eth_is_hex(addr, 42);
 
-  return 1;
+  return eth_is_hex(addr, 40);
 }
 
 int eth_is_checksum_address(const char *addr) {
-  uint8_t addr2[42], keccak[32];
-  size_t i;
+  uint8_t lcaddr[40], keccak[32], i;
 
   if (addr == NULL)
-    return - 1;
-
-  if (eth_is_address(addr) != 1)
     return -1;
 
-  for (i = 0; i < 42; i++)
-    addr2[i] = tolower(addr[i]);
+  if (ethc_strncasecmp(addr, "0x", 2) == 0)
+    addr += 2;
 
-  if (eth_keccak256(keccak, addr2 + 2, 40) != 1)
+  if (eth_is_hex(addr, 40) <= 0)
+    return -1;
+
+  for (i = 0; i < 40; i++)
+    lcaddr[i] = tolower(addr[i]);
+
+  if (eth_keccak256(keccak, lcaddr, 40) <= 0)
     return -1;
 
   for (i = 0; i < 20; i++) {
-    const char *addr_ptr = addr + (i * 2) + 2;
-    uint8_t high_nibble = keccak[i] >> 4 & 0xf;
-    uint8_t low_nibble = keccak[i] & 0x0f;
+    const char *addrptr = addr + (i * 2);
+    uint8_t hnib = (keccak[i] >> 0x04) & 0xf;
+    uint8_t lnib = keccak[i] & 0x0f;
 
-    if (high_nibble >= 8 && islower(*addr_ptr) ||
-        high_nibble < 8 && isupper(*addr_ptr))
+    if (hnib >= 8 && islower(*addrptr) ||
+        hnib < 8 && isupper(*addrptr))
       return 0;
 
-    if (low_nibble >= 8 && islower(*(addr_ptr + 1)) ||
-        low_nibble < 8 && isupper(*(addr_ptr + 1)))
+    if (lnib >= 8 && islower(*(addrptr + 1)) ||
+        lnib < 8 && isupper(*(addrptr + 1)))
       return 0;
   }
 
@@ -47,32 +50,35 @@ int eth_is_checksum_address(const char *addr) {
 }
 
 int eth_to_checksum_address(char *addr) {
-  size_t i;
   uint8_t keccak[32];
+  int isaddr, i;
 
   if (addr == NULL)
     return -1;
 
-  if (eth_is_address(addr) != 1)
+  if (ethc_strncasecmp(addr, "0x", 2) == 0)
+    addr += 2;
+
+  if (eth_is_hex(addr, 40) <= 0)
     return -1;
 
-  if (eth_keccak256(keccak, (uint8_t *)addr + 2, 40) != 1)
+  if (eth_keccak256(keccak, (uint8_t*)addr, 40) != 1)
     return -1;
 
   for (i = 0; i < 20; i++) {
-    char *addr_ptr = addr + (i * 2) + 2;
-    uint8_t high_nibble = keccak[i] >> 4 & 0xf;
-    uint8_t low_nibble = keccak[i] & 0x0f;
+    char *addrptr = addr + (i * 2);
+    uint8_t hnib = keccak[i] >> 4 & 0xf;
+    uint8_t lnib = keccak[i] & 0x0f;
 
-    if (high_nibble >= 8)
-      *addr_ptr = toupper(*addr_ptr);
+    if (hnib >= 8)
+      *addrptr = toupper(*addrptr);
     else
-      *addr_ptr = tolower(*addr_ptr);
+      *addrptr = tolower(*addrptr);
 
-    if (low_nibble >= 8)
-      *(addr_ptr + 1) = toupper(*(addr_ptr + 1));
+    if (lnib >= 8)
+      *(addrptr + 1) = toupper(*(addrptr  + 1));
     else
-      *(addr_ptr + 1) = tolower(*(addr_ptr + 1));
+      *(addrptr + 1) = tolower(*(addrptr + 1));
   }
 
   return 1;
