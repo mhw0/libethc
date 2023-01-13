@@ -11,6 +11,8 @@ extern "C" {
 
 ETHC_EXPORT int ethc_rand(uint8_t *bytes, size_t len);
 ETHC_EXPORT int ethc_strncasecmp(const char *s1, const char *s2, size_t len);
+ETHC_EXPORT int ethc_hexcharb(char h);
+ETHC_EXPORT char ethc_hexchar(uint8_t d);
 
 #ifdef __cplusplus
 }

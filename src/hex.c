@@ -1,9 +1,7 @@
-#include <ethc/internals.h>
-#include <ethc/hex.h>
 #include <stdlib.h>
 #include <string.h>
-
-#define HEXCHARS "0123456789abcdef"
+#include <ethc/hex.h>
+#include <ethc/internals.h>
 
 int eth_is_hex(const char *str, int len) {
   int i;
@@ -16,6 +14,9 @@ int eth_is_hex(const char *str, int len) {
     len = (int)strlen(str);
 
   if (ethc_strncasecmp(str, "0x", 2) == 0) {
+    if (len == 2)
+      return 0;
+
     str += 2;
     len -= 2;
   }
@@ -73,61 +74,64 @@ int eth_hex_pad_right(char *dest, const char *str, int len, size_t width) {
   return 1;
 }
 
-int eth_hex_from_bytes(char *dest, const uint8_t *bytes, size_t len) {
+int eth_hex_from_bytes(char **dest, const uint8_t *bytes, size_t len) {
+  char *buf;
   size_t i = 0, j = 0;
 
   if (dest == NULL || bytes == NULL)
     return -1;
 
+  buf = (char*)malloc((len * 2) + 1);
+  if (buf == NULL)
+    return -1;
+
   while (i < len) {
-    dest[j++] = HEXCHARS[((bytes[i] & 0xFF) >> 4) & 0xF];
-    dest[j++] = HEXCHARS[(bytes[i] & 0xFF) & 0xF];
+    buf[j++] = ethc_hexchar((bytes[i] >> 4) & 0xf);
+    buf[j++] = ethc_hexchar(bytes[i] & 0xf);
     i++;
   }
 
-  dest[j] = '\0';
+  buf[j] = '\0';
+  *dest = buf;
   return j;
 };
 
-int eth_hex_char_to_byte(char ch) {
-  if (ch >= '0' && ch <= '9')
-    return ch - '0';
-  else if (ch >= 'a' && ch <= 'f')
-    return ch - 'a' + 10;
-  else if (ch >= 'A' && ch <= 'F')
-    return ch - 'A' + 10;
-  else
-    return 0; // is this safe?
-}
-
-int eth_hex_to_bytes(uint8_t *dest, const char *hex, int len) {
-  size_t i;
+int eth_hex_to_bytes(uint8_t **dest, const char *hex, int len) {
+  uint8_t *buf;
+  size_t i, bsize, k=0;
 
   if (dest == NULL || hex == NULL)
     return -1;
 
   if (len < 0)
-    len = strlen(hex);
+    len = (int)strlen(hex);
 
   if (eth_is_hex(hex, len) <= 0)
     return -1;
 
-  if (len % 2 != 0) {
-    char *buf = (char*)malloc(len + 1);
-    eth_hex_pad_left(buf, hex, len, len + 1);
-    hex = buf;
-  }
-
   if (ethc_strncasecmp(hex, "0x", 2) == 0) {
+    if (len == 2)
+      return -1;
+
     hex += 2;
     len -= 2;
   }
 
-  for (i = 0; i < len; i += 2) {
-    uint8_t hnib = eth_hex_char_to_byte((hex[i]) & 0xff);
-    uint8_t lnib = eth_hex_char_to_byte((hex[i + 1]) & 0xff);
-    *(dest++) = (hnib << 4) | lnib;
+  bsize = (len % 2 == 0 ? len : len + 1) / 2;
+  buf = (uint8_t*)malloc(bsize);
+  if (buf == NULL)
+    return -1;
+
+  if (len % 2 != 0) {
+    buf[k++] = ethc_hexcharb(hex[0]);
+    hex += 1;
+    len -= 1;
   }
 
-  return len / 2;
+  for (i = 0; i < len ; i+= 2)
+    buf[k++] = (ethc_hexcharb((hex[i])) << 4)
+        | ethc_hexcharb((hex[i + 1]));
+
+  *dest = buf;
+  return k;
 }

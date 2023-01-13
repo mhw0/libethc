@@ -29,3 +29,19 @@ int ethc_rand(uint8_t *bytes, size_t len) {
 int ethc_strncasecmp(const char *s1, const char *s2, size_t len) {
   return strncasecmp(s1, s2, len);
 }
+
+int ethc_hexcharb(char ch) {
+  if (ch >= '0' && ch <= '9')
+    return ch - '0';
+  else if (ch >= 'a' && ch <= 'f')
+    return ch - 'a' + 10;
+  else if (ch >= 'A' && ch <= 'F')
+    return ch - 'A' + 10;
+  else
+    return 0;
+}
+
+char ethc_hexchar(uint8_t d) {
+  const char *hexchars = "0123456789abcdef";
+  return hexchars[d];
+}
