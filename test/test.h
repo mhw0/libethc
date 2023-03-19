@@ -36,3 +36,11 @@ void test_eth_account_privkey_get(void);
 void test_eth_account_pubkey_get(void);
 void test_eth_account_address_get(void);
 void test_eth_account_sign(void);
+
+void test_eth_rlp_uint8(void);
+void test_eth_rlp_uint16(void);
+void test_eth_rlp_uint32(void);
+void test_eth_rlp_uint64(void);
+void test_eth_rlp_address(void);
+void test_eth_rlp_bytes(void);
+void test_eth_rlp_hex(void);

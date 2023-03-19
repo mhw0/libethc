@@ -13,6 +13,7 @@ set(TEST_SOURCE_FILES
     test-eth-utf8.c
     test-eth-keccak256.c
     test-eth-hex.c
+    test-eth-rlp.c
     test-eth-address.c)
 
 add_test(NAME ${PROJECT_NAME} COMMAND ${PROJECT_NAME})

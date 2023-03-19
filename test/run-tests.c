@@ -41,6 +41,14 @@ int main() {
   test_eth_account_address_get();
   test_eth_account_sign();
 
+  test_eth_rlp_uint8();
+  test_eth_rlp_uint16();
+  test_eth_rlp_uint32();
+  test_eth_rlp_uint64();
+  test_eth_rlp_address();
+  test_eth_rlp_bytes();
+  test_eth_rlp_hex();
+
   done_testing();
   return 0;
 }
