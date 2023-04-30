@@ -47,7 +47,7 @@ int eth_rlp_init(struct eth_rlp *dest, int m) {
 int eth_rlp_list(struct eth_rlp *dest) {
   struct eth_rlp_frame *sf;
   size_t len;
-  int base;
+  uint8_t base;
 
   if (dest == NULL)
     return -1;
@@ -76,7 +76,7 @@ int eth_rlp_list(struct eth_rlp *dest) {
 
 int eth_rlp_list_end(struct eth_rlp *dest) {
   struct eth_rlp_frame *cf, *sf;
-  int base;
+  uint8_t base;
 
   if (dest == NULL || dest->cf == NULL)
     return -1;
@@ -157,6 +157,7 @@ int eth_rlp_len(struct eth_rlp *dest, size_t *len, uint8_t *base) {
 
     if (b <= 0x7f) {
       *len = 1;
+      *base = 0;
       return 1;
     }
 
