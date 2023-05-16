@@ -19,16 +19,6 @@ int main() {
   test_eth_bloom_and();
   test_eth_bloom_or();
 
-  test_eth_abi_encode_bool();
-  test_eth_abi_encode_address();
-  test_eth_abi_encode_int();
-  test_eth_abi_encode_uint();
-  test_eth_abi_encode_bytes();
-  test_eth_abi_encode_bytesd();
-  test_eth_abi_encode_stringd();
-  test_eth_abi_encode_func();
-  test_eth_abi_encode_event();
-
   test_eth_unit_convert();
 
   test_eth_utf8_strlen();
@@ -48,6 +38,23 @@ int main() {
   test_eth_rlp_address();
   test_eth_rlp_bytes();
   test_eth_rlp_hex();
+
+  test_eth_abi_bool();
+  test_eth_abi_uint8();
+  test_eth_abi_uint16();
+  test_eth_abi_uint32();
+  test_eth_abi_uint64();
+  test_eth_abi_int8();
+  test_eth_abi_int16();
+  test_eth_abi_int32();
+  test_eth_abi_int64();
+  test_eth_abi_bytes8();
+  test_eth_abi_bytes16();
+  test_eth_abi_bytes32();
+  test_eth_abi_address();
+  test_eth_abi_bytes();
+  test_eth_abi_array();
+  test_eth_abi_call();
 
   done_testing();
   return 0;

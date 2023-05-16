@@ -15,15 +15,27 @@ void test_eth_bloom_copy(void);
 void test_eth_bloom_and(void);
 void test_eth_bloom_or(void);
 
-void test_eth_abi_encode_bool(void);
-void test_eth_abi_encode_address(void);
-void test_eth_abi_encode_int(void);
-void test_eth_abi_encode_uint(void);
-void test_eth_abi_encode_bytes(void);
-void test_eth_abi_encode_bytesd(void);
-void test_eth_abi_encode_stringd(void);
-void test_eth_abi_encode_func(void);
-void test_eth_abi_encode_event(void);
+void test_eth_abi_init(void);
+void test_eth_abi_bool(void);
+void test_eth_abi_address(void);
+void test_eth_abi_int8(void);
+void test_eth_abi_int16(void);
+void test_eth_abi_int32(void);
+void test_eth_abi_int64(void);
+void test_eth_abi_uint8(void);
+void test_eth_abi_uint16(void);
+void test_eth_abi_uint32(void);
+void test_eth_abi_uint64(void);
+void test_eth_abi_bytes(void);
+void test_eth_abi_call(void);
+void test_eth_abi_to_hex(void);
+void test_eth_abi_from_hex(void);
+void test_eth_abi_int(void);
+void test_eth_abi_bytes8(void);
+void test_eth_abi_bytes16(void);
+void test_eth_abi_bytes32(void);
+void test_eth_abi_bytes(void);
+void test_eth_abi_array(void);
 
 void test_eth_unit_convert(void);
 
