@@ -26,7 +26,7 @@
   dest |= framebuf->buf[offset + 31];
 
 #define ethc_abi_buf_pr8(dest, framebuf, offset) \
-  dest |= framebuf->buf[offset + 31];
+  dest = framebuf->buf[offset + 31];
 
 #define ethc_abi_buf_pw64(framebuf, src, offset) \
   framebuf->buf[offset + 24] = (src >> 0x38) & 0xFF; \
@@ -94,11 +94,11 @@ int ethc_abi_frame_init(struct ethc_abi_frame **frame) {
 
 int ethc_abi_frame_backpatch(struct ethc_abi_frame *frame) {
   struct ethc_abi_buf *framebuf, *dybuf;
-  uint64_t dyoffset;
+  uint64_t dyoffset, i;
 
   framebuf = frame->buf;
 
-  for (int i = 0; i < frame->dybuflen; i++) {
+  for (i = 0; i < frame->dybuflen; i++) {
     dybuf = frame->dybufs[i];
 
     // TODO

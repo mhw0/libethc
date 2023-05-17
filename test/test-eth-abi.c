@@ -4,14 +4,17 @@
 
 void test_eth_abi_bool(void) {
   struct eth_abi abi0, abi1;
-  uint8_t b0=1, b1=0, b2, b3, hexlen;
+  uint8_t b0=1, b1=0, b2, b3;
   char *hex;
+  size_t hexlen;
 
   ok(eth_abi_init(&abi0, ETH_ABI_ENCODE) == 1);
   ok(eth_abi_bool(&abi0, &b0) == 1);
   ok(eth_abi_bool(&abi0, &b1) == 1);
-  ok(eth_abi_to_hex(&abi0, &hex, (size_t*)&hexlen) == 1);
+  ok(eth_abi_to_hex(&abi0, &hex, &hexlen) == 1);
+
   ok(hexlen == 128);
+
   is(hex, "0000000000000000000000000000000000000000000000000000000000000001" 
           "0000000000000000000000000000000000000000000000000000000000000000");
   ok(eth_abi_free(&abi0) == 1);
@@ -29,13 +32,14 @@ void test_eth_abi_bool(void) {
 
 void test_eth_abi_uint8(void) {
   struct eth_abi abi0, abi1;
-  uint8_t d0=0x32, d1=0xf2, d2, d3, hexlen;
+  uint8_t d0=0x32, d1=0xf2, d2, d3;
+  size_t hexlen;
   char *hex;
 
   ok(eth_abi_init(&abi0, ETH_ABI_ENCODE) == 1);
   ok(eth_abi_uint8(&abi0, &d0) == 1);
   ok(eth_abi_uint8(&abi0, &d1) == 1);
-  ok(eth_abi_to_hex(&abi0, &hex, (size_t*)&hexlen) == 1);
+  ok(eth_abi_to_hex(&abi0, &hex, &hexlen) == 1);
   ok(eth_abi_free(&abi0) == 1);
   ok(hexlen == 128);
   is(hex, "0000000000000000000000000000000000000000000000000000000000000032" 
@@ -54,13 +58,14 @@ void test_eth_abi_uint8(void) {
 
 void test_eth_abi_uint16(void) {
   struct eth_abi abi0, abi1;
-  uint16_t d0=0x6109, d1=0x3d0c, d2, d3, hexlen;
+  uint16_t d0=0x6109, d1=0x3d0c, d2, d3;
+  size_t hexlen;
   char *hex, *method;
 
   ok(eth_abi_init(&abi0, ETH_ABI_ENCODE) == 1);
   ok(eth_abi_uint16(&abi0, &d0) == 1);
   ok(eth_abi_uint16(&abi0, &d1) == 1);
-  ok(eth_abi_to_hex(&abi0, &hex, (size_t*)&hexlen) == 1);
+  ok(eth_abi_to_hex(&abi0, &hex, &hexlen) == 1);
   ok(eth_abi_free(&abi0) == 1);
   ok(hexlen == 128);
   is(hex, "0000000000000000000000000000000000000000000000000000000000006109" 
@@ -79,13 +84,14 @@ void test_eth_abi_uint16(void) {
 
 void test_eth_abi_uint32(void) {
   struct eth_abi abi0, abi1;
-  uint32_t d0=0xef20f08f, d1=0x35d6887c, d2, d3, hexlen;
+  uint32_t d0=0xef20f08f, d1=0x35d6887c, d2, d3;
+  size_t hexlen;
   char *hex;
 
   ok(eth_abi_init(&abi0, ETH_ABI_ENCODE) == 1);
   ok(eth_abi_uint32(&abi0, &d0) == 1);
   ok(eth_abi_uint32(&abi0, &d1) == 1);
-  ok(eth_abi_to_hex(&abi0, &hex, (size_t*)&hexlen) == 1);
+  ok(eth_abi_to_hex(&abi0, &hex, &hexlen) == 1);
   ok(eth_abi_free(&abi0) == 1);
   ok(hexlen == 128);
   is(hex, "00000000000000000000000000000000000000000000000000000000ef20f08f" 
@@ -441,8 +447,9 @@ void test_eth_abi_array(void) {
 void test_eth_abi_call(void) {
   struct eth_abi abi0, abi1;
   char *fn0 = "foo(bytes[])", *fn1, *hex;
-  size_t hexlen, fnlen;
+  size_t hexlen;
   uint8_t d0 = 0xff, d1;
+  int fnlen;
 
   ok(eth_abi_init(&abi0, ETH_ABI_ENCODE) == 1);
 
@@ -466,7 +473,7 @@ void test_eth_abi_call(void) {
       "0x11602fb3"
       "0000000000000000000000000000000000000000000000000000000000000020", -1) == 1);
 
-  ok(eth_abi_call(&abi1, &fn1, (int*)&fnlen) == 1);
+  ok(eth_abi_call(&abi1, &fn1, &fnlen) == 1);
     ok(eth_abi_uint8(&abi1, &d1) == 1);
   ok(eth_abi_call_end(&abi1) == 1);
   ok(eth_abi_free(&abi1) == 1);
