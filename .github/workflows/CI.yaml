@@ -27,6 +27,10 @@ jobs:
       - uses: actions/checkout@v2
       - name: Envinfo
         run: npx envinfo
+      - name: Initialize and update submodules
+        run: |
+          git submodule init
+          git submodule update
       - uses: actions/checkout@v2
         with:
           repository: bitcoin-core/secp256k1
@@ -40,10 +44,6 @@ jobs:
           make
           sudo make install
           pkg-config --cflags --libs libsecp256k1
-      - uses: actions/checkout@v2
-        with:
-          repository: zorgnax/libtap
-          path: libtap
       - name: Build and install libtap
         run: |
           cd libtap
@@ -67,6 +67,10 @@ jobs:
       - uses: actions/checkout@v2
       - name: Envinfo
         run: npx envinfo
+      - name: Initialize and update submodules
+        run: |
+          git submodule init
+          git submodule update
       - uses: actions/checkout@v2
         with:
           repository: bitcoin-core/secp256k1
@@ -79,10 +83,6 @@ jobs:
           make
           sudo make install
           pkg-config --cflags --libs libsecp256k1
-      - uses: actions/checkout@v2
-        with:
-          repository: zorgnax/libtap
-          path: libtap
       - name: Build and install libtap
         run: |
           cd libtap
