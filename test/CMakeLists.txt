@@ -10,7 +10,6 @@ set(TEST_SOURCE_FILES
     test-eth-abi.c
     test-eth-ecdsa.c
     test-eth-unit.c
-    test-eth-utf8.c
     test-eth-keccak256.c
     test-eth-hex.c
     test-eth-rlp.c

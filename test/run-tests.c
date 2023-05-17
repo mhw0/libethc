@@ -21,8 +21,6 @@ int main() {
 
   test_eth_unit_convert();
 
-  test_eth_utf8_strlen();
-
   test_eth_ecdsa_pubkey_get();
   test_eth_ecdsa_sign();
 

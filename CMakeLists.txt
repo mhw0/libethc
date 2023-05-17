@@ -21,7 +21,6 @@ set(ETHC_SOURCE_FILES
     src/bloom.c
     src/internals.c
     src/unit.c
-    src/utf8.c
     src/hex.c
     src/rlp.c
     src/keccak256.c)

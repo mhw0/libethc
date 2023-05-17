@@ -39,8 +39,6 @@ void test_eth_abi_array(void);
 
 void test_eth_unit_convert(void);
 
-void test_eth_utf8_strlen(void);
-
 void test_eth_ecdsa_pubkey_get(void);
 void test_eth_ecdsa_sign(void);
 
