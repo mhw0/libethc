@@ -15,7 +15,7 @@ int ethc_rand(uint8_t *bytes, size_t len) {
     return -1;
 
   fd = fopen("/dev/urandom", "r");
-  if (fd < 0)
+  if (fd == NULL)
     return -1;
 
   r = fread(bytes, 1, len, fd);

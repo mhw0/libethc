@@ -1,8 +1,7 @@
 #include <ethc/unit.h>
 #include <gmp.h>
 
-char *eth_unit_convert(const char *amount, enum eth_unit from,
-                       enum eth_unit to) {
+char *eth_unit_convert(const char *amount, const char *from, const char *to) {
   mpf_t j, k, l;
   char *buff, *fmt;
 
@@ -14,8 +13,8 @@ char *eth_unit_convert(const char *amount, enum eth_unit from,
     return NULL;
   }
 
-  mpf_init_set_str(k, ETH_UNIT_AMOUNTS[from], 10);
-  mpf_init_set_str(l, ETH_UNIT_AMOUNTS[to], 10);
+  mpf_init_set_str(k, from, 10);
+  mpf_init_set_str(l, to, 10);
 
   mpf_mul(j, j, k);
   mpf_div(j, j, l);

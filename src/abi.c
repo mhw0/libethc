@@ -75,7 +75,6 @@ int ethc_abi_buf_init(struct ethc_abi_buf **dest, size_t size) {
 int ethc_abi_frame_init(struct ethc_abi_frame **frame) {
   struct ethc_abi_frame *nframe;
   struct ethc_abi_buf *fbuf;
-  uint8_t *buf;
 
   nframe = (struct ethc_abi_frame*)malloc(sizeof(struct ethc_abi_frame));
   if (nframe == NULL)
@@ -101,12 +100,11 @@ int ethc_abi_frame_backpatch(struct ethc_abi_frame *frame) {
   for (i = 0; i < frame->dybuflen; i++) {
     dybuf = frame->dybufs[i];
 
-    // TODO
     dyoffset = frame->pframe == NULL
       ? framebuf->offset
       : framebuf->offset - ETH_ABI_WORD_SIZE;
 
-    // backpatch the offset for the dynamic buffer (can up to 2**64)
+    /* backpatch the offset for the dynamic buffer (can up to 2**64) */
     ethc_abi_buf_pw64(framebuf, dyoffset, dybuf->doffset);
 
     memcpy(&(framebuf->buf[framebuf->offset]), dybuf->buf, dybuf->len);
@@ -132,7 +130,7 @@ int eth_abi_init(struct eth_abi *abi, int m) {
   abi->m = m;
   abi->cframe = nframe;
   return 1;
-};
+}
 
 int eth_abi_free(struct eth_abi *abi) {
   if (abi == NULL)
@@ -141,7 +139,7 @@ int eth_abi_free(struct eth_abi *abi) {
   free(abi->cframe);
   abi->cframe = NULL;
   return 1;
-};
+}
 
 int eth_abi_array(struct eth_abi *abi, uint64_t *len) {
   struct ethc_abi_frame *cframe, *nframe;
@@ -161,12 +159,12 @@ int eth_abi_array(struct eth_abi *abi, uint64_t *len) {
     nframebuf = nframe->buf;
     nframebuf->doffset = cframebuf->offset;
 
-    // offset
+    /* write offset */
     memset(cframebuf->buf + cframebuf->offset, 0, ETH_ABI_WORD_SIZE);
     cframebuf->len += ETH_ABI_WORD_SIZE;
     cframebuf->offset += ETH_ABI_WORD_SIZE;
 
-    // length
+    /* write length */
     memset(nframebuf->buf + nframebuf->offset, 0, ETH_ABI_WORD_SIZE);
     nframebuf->len += ETH_ABI_WORD_SIZE;
     nframebuf->offset += ETH_ABI_WORD_SIZE;
@@ -222,7 +220,7 @@ int eth_abi_array_end(struct eth_abi *abi) {
   if (abi->m == ETH_ABI_ENCODE) {
     asize = cframebuf->len / ETH_ABI_WORD_SIZE - 1;
 
-    // backpatch the length
+    /* backpatch the length */
     ethc_abi_buf_pw64(cframebuf, asize, 0);
 
     ethc_abi_frame_backpatch(abi->cframe);
@@ -290,7 +288,7 @@ int eth_abi_address(struct eth_abi *abi, char **addr) {
 int eth_abi_call(struct eth_abi *abi, char **fn, int *len) {
   struct ethc_abi_buf *cframebuf;
   uint8_t keccak[32];
-  size_t fnlen;
+  int fnlen;
 
   cframebuf = abi->cframe->buf;
 
@@ -307,7 +305,8 @@ int eth_abi_call(struct eth_abi *abi, char **fn, int *len) {
   }
 
   if (abi->m == ETH_ABI_DECODE) {
-    if ((fnlen = eth_hex_from_bytes(fn, &(cframebuf->buf[cframebuf->offset]), 4)) < 0)
+    fnlen = eth_hex_from_bytes(fn, &(cframebuf->buf[cframebuf->offset]), 4);
+    if (fnlen < 0)
       return -1;
 
     if (len != NULL)
@@ -317,7 +316,7 @@ int eth_abi_call(struct eth_abi *abi, char **fn, int *len) {
   }
 
   return -1;
-};
+}
 
 int eth_abi_call_end(struct eth_abi *abi) {
   struct ethc_abi_frame *cframe;
@@ -338,7 +337,7 @@ int eth_abi_call_end(struct eth_abi *abi) {
     return 1;
 
   return -1;
-};
+}
 
 int eth_abi_uint8(struct eth_abi *abi, uint8_t *d) {
   struct ethc_abi_buf *cframebuf;
@@ -645,13 +644,14 @@ int eth_abi_bytes(struct eth_abi *abi, uint8_t **bytes, size_t *len) {
   struct ethc_abi_frame *cframe;
   struct ethc_abi_buf *cframebuf, *dybuf;
   uint64_t dyoffset, blen;
+  uint8_t *buf;
   size_t bsize;
   
   cframe = abi->cframe;
   cframebuf = cframe->buf;
   
   if (abi->m == ETH_ABI_ENCODE) {
-    // make the arbitrary length 32-byte aligned (16->32, 33->64)
+    /* make the arbitrary length 32-byte aligned (16->32, 33->64) */
     bsize = *len % ETH_ABI_WORD_SIZE
       ? *len + (ETH_ABI_WORD_SIZE - (*len % ETH_ABI_WORD_SIZE))
       : *len;
@@ -659,14 +659,14 @@ int eth_abi_bytes(struct eth_abi *abi, uint8_t **bytes, size_t *len) {
     if (ethc_abi_buf_init(&dybuf, ETH_ABI_WORD_SIZE + bsize) < 0)
       return -1;
 
-    // store the declaration offset for the dynamic buffer
+    /* store the declaration offset for the dynamic buffer */
     dybuf->doffset = cframebuf->offset;
 
     memset(&(cframebuf->buf[cframebuf->offset]), 0, ETH_ABI_WORD_SIZE);
     cframebuf->offset += ETH_ABI_WORD_SIZE;
     cframebuf->len += ETH_ABI_WORD_SIZE;
 
-    // write the length
+    /* write the length */
     ethc_abi_buf_pw64(dybuf, *len, 0);
     dybuf->offset += ETH_ABI_WORD_SIZE;
     dybuf->len += ETH_ABI_WORD_SIZE;
@@ -680,14 +680,14 @@ int eth_abi_bytes(struct eth_abi *abi, uint8_t **bytes, size_t *len) {
   }
   
   if (abi->m == ETH_ABI_DECODE) {
-    // read the offset
+    /* read the offset */
     ethc_abi_buf_pr64(dyoffset, cframebuf, cframebuf->offset);
     cframebuf->offset += ETH_ABI_WORD_SIZE;
 
-    // read the length
+    /* read the length */
     ethc_abi_buf_pr64(blen, cframebuf, dyoffset);
 
-    uint8_t *buf = (uint8_t*)malloc(blen);
+    buf = (uint8_t*)malloc(blen);
     if (buf == NULL)
       return -1;
 

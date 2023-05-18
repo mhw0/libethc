@@ -29,9 +29,9 @@ int eth_bloom_from_bytes(struct eth_bloom *bloom, const uint8_t *bytes,
     return 1;
 
   for (i = 0; i < 6; i += 2) {
-    bitpos = ((keccak[i] & 0xFF) << 0x8) + (keccak[i + 1] & 0xFF) & 0x7ff;
+    bitpos = (((keccak[i] & 0xFF) << 0x8) + (keccak[i + 1] & 0xFF)) & 0x7ff;
     bitset = (BITSETS - (bitpos / BITS_PER_BITSET)) - 1;
-    bloom->bitsets[bitset] |= (1ULL << (bitpos % BITS_PER_BITSET));
+    bloom->bitsets[bitset] |= (1 << (bitpos % BITS_PER_BITSET));
   }
 
   return 1;

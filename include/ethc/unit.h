@@ -7,45 +7,31 @@ extern "C" {
 
 #include "ethc-common.h"
 
-#define ETH_UNIT_MAP(XX)                                                       \
-  XX(WEI, "1")                                                                 \
-  XX(KWEI, "1000")                                                             \
-  XX(BABBAGE, "1000")                                                          \
-  XX(FEMTOETHER, "1000")                                                       \
-  XX(MWEI, "1000000")                                                          \
-  XX(LOVELACE, "1000000")                                                      \
-  XX(PICOETHER, "1000000")                                                     \
-  XX(GWEI, "1000000000")                                                       \
-  XX(SHANNON, "1000000000")                                                    \
-  XX(NANOETHER, "1000000000")                                                  \
-  XX(NANO, "1000000000")                                                       \
-  XX(SZABO, "1000000000000")                                                   \
-  XX(MICROETHER, "1000000000000")                                              \
-  XX(MICRO, "1000000000000")                                                   \
-  XX(FINNEY, "1000000000000000")                                               \
-  XX(MILLIETHER, "1000000000000000")                                           \
-  XX(MILLI, "1000000000000000")                                                \
-  XX(ETHER, "1000000000000000000")                                             \
-  XX(KETHER, "1000000000000000000000")                                         \
-  XX(GRAND, "1000000000000000000000")                                          \
-  XX(METHER, "1000000000000000000000000")                                      \
-  XX(GETHER, "1000000000000000000000000000")                                   \
-  XX(TETHER, "1000000000000000000000000000000")
+#define ETH_UNIT_WEI "1"
+#define ETH_UNIT_KWEI "1000"
+#define ETH_UNIT_BABBAGE "1000"
+#define ETH_UNIT_FEMTOETHER "1000"
+#define ETH_UNIT_MWEI "1000000"
+#define ETH_UNIT_LOVELACE "1000000"
+#define ETH_UNIT_PICOETHER "1000000"
+#define ETH_UNIT_GWEI "1000000000"
+#define ETH_UNIT_SHANNON "1000000000"
+#define ETH_UNIT_NANOETHER "1000000000"
+#define ETH_UNIT_NANO "1000000000"
+#define ETH_UNIT_SZABO "1000000000000"
+#define ETH_UNIT_MICROETHER "1000000000000"
+#define ETH_UNIT_MICRO "1000000000000"
+#define ETH_UNIT_FINNEY "1000000000000000"
+#define ETH_UNIT_MILLIETHER "1000000000000000"
+#define ETH_UNIT_MILLI "1000000000000000"
+#define ETH_UNIT_ETHER "1000000000000000000"
+#define ETH_UNIT_KETHER "1000000000000000000000"
+#define ETH_UNIT_GRAND "1000000000000000000000"
+#define ETH_UNIT_METHER "1000000000000000000000000"
+#define ETH_UNIT_GETHER "1000000000000000000000000000"
+#define ETH_UNIT_TETHER "1000000000000000000000000000000"
 
-enum eth_unit {
-#define XX(UNIT, _) ETH_UNIT_##UNIT,
-  ETH_UNIT_MAP(XX)
-#undef XX
-};
-
-static const char *ETH_UNIT_AMOUNTS[] = {
-#define XX(_, AMOUNT) AMOUNT,
-  ETH_UNIT_MAP(XX)
-#undef XX
-};
-
-ETHC_EXPORT char *eth_unit_convert(const char *amount, enum eth_unit from,
-                                   enum eth_unit to);
+ETHC_EXPORT char *eth_unit_convert(const char *amount, const char *from, const char *to);
 
 #ifdef __cplusplus
 }

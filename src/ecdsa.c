@@ -7,7 +7,7 @@ int eth_ecdsa_pubkey_get(uint8_t *dest, const uint8_t *privkey) {
   secp256k1_context *secp_ctx;
   secp256k1_pubkey secp_pub;
   size_t outlen = 65;
-  uint8_t tmp[outlen];
+  uint8_t tmp[65];
   int r = 0;
 
   if (dest == NULL || privkey == NULL)

@@ -37,12 +37,10 @@ int eth_is_checksum_address(const char *addr) {
     uint8_t hnib = (keccak[i] >> 0x04) & 0xf;
     uint8_t lnib = keccak[i] & 0x0f;
 
-    if (hnib >= 8 && islower(*addrptr) ||
-        hnib < 8 && isupper(*addrptr))
+    if ((hnib >= 8 && islower(*addrptr)) || (hnib < 8 && isupper(*addrptr)))
       return 0;
 
-    if (lnib >= 8 && islower(*(addrptr + 1)) ||
-        lnib < 8 && isupper(*(addrptr + 1)))
+    if ((lnib >= 8 && islower(*(addrptr + 1))) || (lnib < 8 && isupper(*(addrptr + 1))))
       return 0;
   }
 
@@ -51,7 +49,7 @@ int eth_is_checksum_address(const char *addr) {
 
 int eth_to_checksum_address(char *addr) {
   uint8_t keccak[32];
-  int isaddr, i;
+  int i;
 
   if (addr == NULL)
     return -1;

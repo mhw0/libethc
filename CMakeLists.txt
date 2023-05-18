@@ -26,6 +26,7 @@ set(ETHC_SOURCE_FILES
     src/keccak256.c)
 
 option(ENABLE_TESTING "Enable testing" OFF)
+option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
 
 pkg_check_modules(GMP REQUIRED gmp)
 pkg_check_modules(SECP256K1 REQUIRED libsecp256k1)
@@ -35,6 +36,7 @@ add_library(${PROJECT_NAME} SHARED ${ETHC_SOURCE_FILES})
 set_target_properties(
   ${PROJECT_NAME} PROPERTIES C_STANDARD 90 SOVERSION ${PROJECT_VERSION_MAJOR})
 
+target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -Werror -Wno-sometimes-uninitialized -Wno-sign-compare)
 target_link_libraries(${PROJECT_NAME} keccak m ${GMP_LINK_LIBRARIES} ${SECP256K1_LINK_LIBRARIES})
 target_include_directories(
   ${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include

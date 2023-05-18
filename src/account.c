@@ -9,7 +9,6 @@
 
 int eth_account_create(struct eth_account *dest, const uint8_t *entropy) {
   uint8_t pubkey[64], privkey[32], keccak[32], r[64];
-  int op;
 
   if (dest == NULL)
     return -1;
@@ -42,7 +41,6 @@ int eth_account_create(struct eth_account *dest, const uint8_t *entropy) {
 
 int eth_account_from_privkey(struct eth_account *dest, const uint8_t *privkey) {
   uint8_t pubkey[64], keccak[32];
-  int op;
 
   if (dest == NULL || privkey == NULL)
     return -1;
@@ -94,12 +92,13 @@ int eth_account_privkey_get(char *dest, const struct eth_account *src) {
 
 int eth_account_pubkey_get(char *dest, const struct eth_account *src) {
   char *buf;
-  uint8_t pubkey[64], spub;
+  int spub;
 
   if (dest == NULL || src == NULL)
     return -1;
 
-  if ((spub = eth_hex_from_bytes(&buf, src->pubkey, 64)) < 0)
+  spub = eth_hex_from_bytes(&buf, src->pubkey, 64);
+  if (spub < 0)
     return -1;
 
   memcpy(dest, buf, spub);
@@ -112,7 +111,6 @@ int eth_account_sign(struct eth_ecdsa_signature *dest,
                     const struct eth_account *account, 
                     const uint8_t *data, size_t len) {
   uint8_t keccak[32];
-  int op;
 
   if (dest == NULL || account == NULL || data == NULL)
     return -1;

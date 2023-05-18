@@ -94,7 +94,7 @@ int eth_hex_from_bytes(char **dest, const uint8_t *bytes, size_t len) {
   buf[j] = '\0';
   *dest = buf;
   return j;
-};
+}
 
 int eth_hex_to_bytes(uint8_t **dest, const char *hex, int len) {
   uint8_t *buf;

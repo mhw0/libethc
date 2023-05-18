@@ -32,7 +32,7 @@ int eth_rlp_frame(struct eth_rlp_frame **dest, uint8_t *bytes, size_t len) {
 
 int eth_rlp_init(struct eth_rlp *dest, int m) {
   struct eth_rlp_frame *f;
-  uint8_t *buf;
+
   if (dest == NULL)
     return -1;
 
@@ -42,7 +42,7 @@ int eth_rlp_init(struct eth_rlp *dest, int m) {
   dest->cf = f;
   dest->m = m;
   return 1;
-};
+}
 
 int eth_rlp_list(struct eth_rlp *dest) {
   struct eth_rlp_frame *sf;
@@ -118,20 +118,20 @@ int eth_rlp_len(struct eth_rlp *dest, size_t *len, uint8_t *base) {
   if (dest->m == ETH_RLP_ENCODE) {
     if (*len <= 0x37) {
       cf->fp[cf->fc++] = *base + *len;
-    } else if (*len <= 0xff) { // u8
+    } else if (*len <= 0xff) {
       cf->fp[cf->fc++] = *base + 0x01;
       cf->fp[cf->fc++] = *len;
-    } else if (*len <= 0xffff) { // u16
+    } else if (*len <= 0xffff) {
       cf->fp[cf->fc++] = *base + 0x37 + 0x02;
       cf->fp[cf->fc++] = (*len >> 0x08) & 0xff;
       cf->fp[cf->fc++] = *len & 0xff;
-    } else if (*len <= 0xffffffff) { // u32
+    } else if (*len <= 0xffffffff) {
       cf->fp[cf->fc++] = *base + 0x37 + 0x04;
       cf->fp[cf->fc++] = (*len >> 0x18) & 0xff;
       cf->fp[cf->fc++] = (*len >> 0x10) & 0xff;
       cf->fp[cf->fc++] = (*len >> 0x08) & 0xff;
       cf->fp[cf->fc++] = *len & 0xff;
-    } else if (*len <= 0xffffffffffffffff) { // u64
+    } else if (*len <= 0xffffffffffffffff) {
       cf->fp[cf->fc++] = *base + 0x37 + 0x08;
       cf->fp[cf->fc++] = (*len >> 0x38) & 0xff;
       cf->fp[cf->fc++] = (*len >> 0x30) & 0xff;
@@ -149,7 +149,6 @@ int eth_rlp_len(struct eth_rlp *dest, size_t *len, uint8_t *base) {
   }
 
   if (dest->m == ETH_RLP_DECODE) {
-    // TODO
     if (cf->fc >= cf->fs)
       return -1;
 
@@ -255,14 +254,11 @@ int eth_rlp_bytes(struct eth_rlp *dest, uint8_t **bytes, size_t *len) {
 }
 
 int eth_rlp_hex(struct eth_rlp *dest, char **hex, int *len) {
-  struct eth_rlp_frame *cf;
   uint8_t *buf;
   size_t hsize;
 
   if (dest == NULL || hex == NULL)
     return -1;
-
-  cf = dest->cf;
 
   if (dest->m == ETH_RLP_ENCODE) {
     if (*len == -1)
@@ -379,7 +375,7 @@ int eth_rlp_uint8(struct eth_rlp *dest, uint8_t *d) {
   }
 
   return -1;
-};
+}
 
 int eth_rlp_uint16(struct eth_rlp *dest, uint16_t *d) {
   uint8_t *bytes;
@@ -417,7 +413,7 @@ int eth_rlp_uint16(struct eth_rlp *dest, uint16_t *d) {
   }
 
   return -1;
-};
+}
 
 int eth_rlp_uint32(struct eth_rlp *dest, uint32_t *d) {
   uint8_t *bytes;
@@ -458,7 +454,7 @@ int eth_rlp_uint32(struct eth_rlp *dest, uint32_t *d) {
   }
 
   return -1;
-};
+}
 
 int eth_rlp_uint64(struct eth_rlp *dest, uint64_t *d) {
   uint8_t *bytes;
@@ -500,7 +496,7 @@ int eth_rlp_uint64(struct eth_rlp *dest, uint64_t *d) {
   }
 
   return -1;
-};
+}
 
 int eth_rlp_address(struct eth_rlp *dest, char **addr) {
   int hexlen;
