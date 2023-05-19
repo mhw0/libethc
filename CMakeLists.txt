@@ -1,19 +1,20 @@
-cmake_minimum_required(VERSION 3.0)
-project(
+CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
+PROJECT(
   ethc
   LANGUAGES C
   VERSION 0.8.0)
 
-include(FindPkgConfig)
-include(GNUInstallDirs)
+INCLUDE(GNUInstallDirs)
 
-message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+IF(NOT CMAKE_BUILD_TYPE)
+  SET(CMAKE_BUILD_TYPE Debug)
+ENDIF()
 
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Debug)
-endif()
+MESSAGE(STATUS "ethc: build type: ${CMAKE_BUILD_TYPE}")
 
-set(ETHC_SOURCE_FILES
+SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake")
+
+SET(ETHC_SOURCE_FILES
     src/abi.c
     src/account.c
     src/address.c
@@ -25,37 +26,77 @@ set(ETHC_SOURCE_FILES
     src/rlp.c
     src/keccak256.c)
 
-option(ENABLE_TESTING "Enable testing" OFF)
-option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
+SET(BUILD_SHARED_LIBS ON)
 
-pkg_check_modules(GMP REQUIRED gmp)
-pkg_check_modules(SECP256K1 REQUIRED libsecp256k1)
+OPTION(ETHC_BUILD_TESTS "Build tests" OFF)
+OPTION(ETHC_DISABLE_SHARED_LIBS "Disable shared libs" OFF)
 
-add_library(${PROJECT_NAME} SHARED ${ETHC_SOURCE_FILES})
+IF(ETHC_DISABLE_SHARED_LIBS)
+  SET(BUILD_SHARED_LIBS OFF)
+ENDIF()
 
-set_target_properties(
+ADD_LIBRARY(${PROJECT_NAME} ${ETHC_SOURCE_FILES})
+
+SET_TARGET_PROPERTIES(
   ${PROJECT_NAME} PROPERTIES C_STANDARD 90 SOVERSION ${PROJECT_VERSION_MAJOR})
 
-target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -Werror -Wno-sometimes-uninitialized -Wno-sign-compare)
-target_link_libraries(${PROJECT_NAME} keccak m ${GMP_LINK_LIBRARIES} ${SECP256K1_LINK_LIBRARIES})
-target_include_directories(
+TARGET_COMPILE_OPTIONS(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -Werror -Wno-sometimes-uninitialized -Wno-sign-compare)
+
+FIND_PACKAGE(secp256k1 QUIET)
+FIND_PACKAGE(gmp QUIET)
+FIND_PACKAGE(Git QUIET)
+
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} keccak m
+  ${GMP_LINK_LIBRARIES}
+  ${SECP256K1_LINK_LIBRARIES})
+
+TARGET_INCLUDE_DIRECTORIES(
   ${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
-                          ${GMP_INCLUDE_DIRS} ${SECP256K1_INCLUDE_DIRS})
+  ${GMP_INCLUDE_DIRS} ${SECP256K1_INCLUDE_DIRS})
 
-if(ENABLE_TESTING)
-  enable_testing()
-  add_subdirectory(test)
-endif()
+if(ETHC_BUILD_TESTS)
+  if(NOT Git_FOUND)
+    MESSAGE(FATAL_ERROR "ethc: cannot find git")
+  endif()
 
-add_subdirectory(libkeccak)
+  MESSAGE(STATUS "ethc: initializing and updating submodules")
+  EXECUTE_PROCESS(COMMAND "git submodule init")
+  EXECUTE_PROCESS(COMMAND "git submodule update")
 
-install(TARGETS ${PROJECT_NAME} LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
-install(
+  MESSAGE(STATUS "ethc: git version: ${GIT_VERSION_STRING}")
+ENDIF()
+
+IF(ETHC_BUILD_TESTS)
+  MESSAGE(STATUS "ethc: building libtap..")
+  EXECUTE_PROCESS(
+    COMMAND make libtap.a
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/libtap
+    OUTPUT_QUIET
+  )
+
+  ENABLE_TESTING()
+  ADD_SUBDIRECTORY(test)
+ENDIF()
+
+MESSAGE(STATUS "ethc: SECP256K1_INCLUDE_DIRS: ${SECP256K1_INCLUDE_DIRS}")
+MESSAGE(STATUS "ethc: SECP256K1_LINK_LIBRARIES: ${SECP256K1_LINK_LIBRARIES}")
+
+MESSAGE(STATUS "ethc: GMP_INCLUDE_DIRS: ${GMP_INCLUDE_DIRS}")
+MESSAGE(STATUS "ethc: GMP_LINK_LIBRARIES: ${GMP_LINK_LIBRARIES}")
+
+ADD_SUBDIRECTORY(libkeccak)
+
+INSTALL(TARGETS ${PROJECT_NAME} LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+INSTALL(
   DIRECTORY ${CMAKE_SOURCE_DIR}/include
   DESTINATION .
   FILES_MATCHING
   PATTERN "*.h")
-install(FILES ${CMAKE_BINARY_DIR}/libethc.pc
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 
-configure_file(libethc.pc.in libethc.pc @ONLY)
+IF(UNIX OR APPLE OR CYGWIN)
+  MESSAGE(STATUS "ethc: generating libethc.pc")
+  CONFIGURE_FILE(libethc.pc.in libethc.pc @ONLY)
+
+  INSTALL(FILES ${CMAKE_BINARY_DIR}/libethc.pc
+          DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
+ENDIF()

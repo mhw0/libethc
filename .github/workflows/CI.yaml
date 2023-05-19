@@ -44,17 +44,11 @@ jobs:
           make
           sudo make install
           pkg-config --cflags --libs libsecp256k1
-      - name: Build and install libtap
-        run: |
-          cd libtap
-          make
-          sudo make install
-          pkg-config --cflags --libs tap
       - name: Build
         run: |
           mkdir build
           cd build
-          cmake -DENABLE_TESTING=ON ..
+          cmake -DETHC_BUILD_TESTS=ON ..
           make
           ls -lh
       - name: Test
@@ -83,17 +77,11 @@ jobs:
           make
           sudo make install
           pkg-config --cflags --libs libsecp256k1
-      - name: Build and install libtap
-        run: |
-          cd libtap
-          make
-          sudo make install
-          pkg-config --cflags --libs tap
       - name: Build
         run: |
           mkdir build
           cd build
-          cmake -DENABLE_TESTING=ON ..
+          cmake -DETHC_BUILD_TESTS=ON ..
           make
           ls -lh
       - name: Test
