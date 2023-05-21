@@ -5,7 +5,7 @@
 
 void test_eth_rlp_uint8(void) {
   struct eth_rlp rlp0, rlp1;
-  uint8_t d0=0xff, d1=0x04, d2, d3;
+  uint8_t d0=0xff, d1=0x04, d2=0x00, d3, d4;
   char *hex;
 
   ok(eth_rlp_init(&rlp0, ETH_RLP_ENCODE) == 1);
@@ -13,22 +13,22 @@ void test_eth_rlp_uint8(void) {
   ok(eth_rlp_array(&rlp0) == 1);
     ok(eth_rlp_uint8(&rlp0, &d0) == 1);
     ok(eth_rlp_uint8(&rlp0, &d1) == 1);
+    ok(eth_rlp_uint8(&rlp0, &d2) == 1);
   ok(eth_rlp_array_end(&rlp0) == 1);
 
-  ok(eth_rlp_to_hex(&hex, &rlp0) == 8);
-  is(hex, "c381ff04");
+  ok(eth_rlp_to_hex(&hex, &rlp0) == 10);
+  is(hex, "c481ff0480");
   ok(eth_rlp_free(&rlp0) == 1);
   free(hex);
 
-
   ok(eth_rlp_from_hex(&rlp1, "c381ac08", -1) == 1);
   ok(eth_rlp_array(&rlp1) == 1);
-    ok(eth_rlp_uint8(&rlp1, &d2) == 1);
     ok(eth_rlp_uint8(&rlp1, &d3) == 1);
+    ok(eth_rlp_uint8(&rlp1, &d4) == 1);
   ok(eth_rlp_array_end(&rlp1) == 1);
   ok(eth_rlp_free(&rlp1) == 1);
-  ok(d2 == 0xac);
-  ok(d3 == 0x08);
+  ok(d3 == 0xac);
+  ok(d4 == 0x08);
 }
 
 void test_eth_rlp_uint16(void) {

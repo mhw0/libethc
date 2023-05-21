@@ -213,7 +213,6 @@ int eth_rlp_len(struct eth_rlp *rlp, size_t *len, uint8_t *base) {
   return -1;
 }
 
-
 int eth_rlp_bytes(struct eth_rlp *rlp, uint8_t **bytes, size_t *len) {
   struct ethc_rlp_frame *cframe;
   uint8_t base, *buf;
@@ -225,7 +224,12 @@ int eth_rlp_bytes(struct eth_rlp *rlp, uint8_t **bytes, size_t *len) {
   
   if (rlp->m == ETH_RLP_ENCODE) {
     if (*len == 1 && **bytes <= 0x7F) {
-      cframe->buf[cframe->offset++] = **bytes;
+      /* single 0 value is empty bytes (0x) */
+      if (**bytes == 0x00)
+        cframe->buf[cframe->offset++] = 0x80;
+      else
+        cframe->buf[cframe->offset++] = **bytes;
+
       cframe->len++;
       return 1;
     }
