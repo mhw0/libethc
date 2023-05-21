@@ -29,14 +29,6 @@ int main() {
   test_eth_account_address_get();
   test_eth_account_sign();
 
-  test_eth_rlp_uint8();
-  test_eth_rlp_uint16();
-  test_eth_rlp_uint32();
-  test_eth_rlp_uint64();
-  test_eth_rlp_address();
-  test_eth_rlp_bytes();
-  test_eth_rlp_hex();
-
   test_eth_abi_bool();
   test_eth_abi_uint8();
   test_eth_abi_uint16();
@@ -53,6 +45,14 @@ int main() {
   test_eth_abi_bytes();
   test_eth_abi_array();
   test_eth_abi_call();
+
+  test_eth_rlp_uint8();
+  test_eth_rlp_uint16();
+  test_eth_rlp_uint32();
+  test_eth_rlp_uint64();
+  test_eth_rlp_bytes();
+  test_eth_rlp_hex();
+  test_eth_rlp_address();
 
   done_testing();
   return 0;

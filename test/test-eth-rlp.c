@@ -4,225 +4,188 @@
 #include <ethc/rlp.h>
 
 void test_eth_rlp_uint8(void) {
-  struct eth_rlp erlp;
-  ok(eth_rlp_init(&erlp, ETH_RLP_ENCODE) == 1);
+  struct eth_rlp rlp0, rlp1;
+  uint8_t d0=0xff, d1=0x04, d2, d3;
+  char *hex;
 
-  uint8_t ed1 = 0x70, ed2 = 0xff;
-  ok(eth_rlp_list(&erlp) == 1);
-    ok(eth_rlp_uint8(&erlp, &ed1) == 1);
-    ok(eth_rlp_uint8(&erlp, &ed2) == 1);
-  ok(eth_rlp_list_end(&erlp) == 1);
+  ok(eth_rlp_init(&rlp0, ETH_RLP_ENCODE) == 1);
 
-  char *ehex;
-  ok(eth_rlp_to_hex(&ehex, &erlp) > 0);
-  ok(strncmp(ehex, "c37081ff", strlen(ehex)) == 0);
-  free(ehex);
-  ok(eth_rlp_free(&erlp) == 1);
+  ok(eth_rlp_array(&rlp0) == 1);
+    ok(eth_rlp_uint8(&rlp0, &d0) == 1);
+    ok(eth_rlp_uint8(&rlp0, &d1) == 1);
+  ok(eth_rlp_array_end(&rlp0) == 1);
+
+  ok(eth_rlp_to_hex(&hex, &rlp0) == 8);
+  is(hex, "c381ff04");
+  ok(eth_rlp_free(&rlp0) == 1);
+  free(hex);
 
 
-  struct eth_rlp drlp;
-  ok(eth_rlp_init(&drlp, ETH_RLP_DECODE) == 1);
-
-  char *dhex = "c381ca0f";
-  ok(eth_rlp_from_hex(&drlp, dhex, -1) == 1);
-
-  uint8_t dd1=0, dd2=0;
-  ok(eth_rlp_list(&drlp) == 1);
-    ok(eth_rlp_uint8(&drlp, &dd1) == 1);
-    ok(eth_rlp_uint8(&drlp, &dd2) == 1);
-    ok(eth_rlp_uint8(&drlp, &dd2) == -1);
-  ok(eth_rlp_list_end(&drlp) == 1);
-  ok(dd1 == 0xca);
-  ok(dd2 == 0x0f);
-  ok(eth_rlp_free(&drlp) == 1);
+  ok(eth_rlp_from_hex(&rlp1, "c381ac08", -1) == 1);
+  ok(eth_rlp_array(&rlp1) == 1);
+    ok(eth_rlp_uint8(&rlp1, &d2) == 1);
+    ok(eth_rlp_uint8(&rlp1, &d3) == 1);
+  ok(eth_rlp_array_end(&rlp1) == 1);
+  ok(eth_rlp_free(&rlp1) == 1);
+  ok(d2 == 0xac);
+  ok(d3 == 0x08);
 }
 
 void test_eth_rlp_uint16(void) {
-  struct eth_rlp erlp;
-  ok(eth_rlp_init(&erlp, ETH_RLP_ENCODE) == 1);
+  struct eth_rlp rlp0, rlp1;
+  uint16_t d0=0xb60a, d1;
+  char *hex;
 
-  uint16_t ed1=0xffaa, ed2=0x0001;
-  ok(eth_rlp_list(&erlp) == 1);
-    ok(eth_rlp_uint16(&erlp, &ed1) == 1);
-    ok(eth_rlp_uint16(&erlp, &ed2) == 1);
-  ok(eth_rlp_list_end(&erlp) == 1);
+  ok(eth_rlp_init(&rlp0, ETH_RLP_ENCODE) == 1);
 
-  char *ehex;
-  ok(eth_rlp_to_hex(&ehex, &erlp) > 0);
-  ok(strncmp(ehex, "c682ffaa820001", strlen(ehex)) == 0);
-  ok(eth_rlp_free(&erlp) == 1);
-  free(ehex);
+  ok(eth_rlp_array(&rlp0) == 1);
+    ok(eth_rlp_uint16(&rlp0, &d0) == 1);
+  ok(eth_rlp_array_end(&rlp0) == 1);
+
+  ok(eth_rlp_to_hex(&hex, &rlp0) == 8);
+  is(hex, "c382b60a");
+  ok(eth_rlp_free(&rlp0) == 1);
+  free(hex);
 
 
-  struct eth_rlp drlp;
-  ok(eth_rlp_init(&drlp, ETH_RLP_DECODE) == 1);
-  char *dhex = "c682ccfa820003";
-  ok(eth_rlp_from_hex(&drlp, dhex, -1) == 1);
-
-  uint16_t dd1=0, dd2=0;
-  ok(eth_rlp_list(&drlp) == 1);
-    ok(eth_rlp_uint16(&drlp, &dd1) == 1);
-    ok(eth_rlp_uint16(&drlp, &dd2) == 1);
-    ok(eth_rlp_uint16(&drlp, &dd2) == -1);
-  ok(eth_rlp_list_end(&drlp) == 1);
-  ok(dd1 == 0xccfa);
-  ok(dd2 == 0x0003);
-  ok(eth_rlp_free(&drlp) == 1);
+  ok(eth_rlp_from_hex(&rlp1, "0xc382265d", -1) == 1);
+  ok(eth_rlp_array(&rlp1) == 1);
+    ok(eth_rlp_uint16(&rlp1, &d1) == 1);
+  ok(eth_rlp_array_end(&rlp1) == 1);
+  ok(eth_rlp_free(&rlp1) == 1);
+  ok(d1 == 0x265d);
 }
 
 void test_eth_rlp_uint32(void) {
-  struct eth_rlp erlp;
-  ok(eth_rlp_init(&erlp, ETH_RLP_ENCODE) == 1);
+  struct eth_rlp rlp0, rlp1;
+  uint32_t d0=0x62d07b34, d1;
+  char *hex;
 
-  uint32_t ed1=0x751aa49d, ed2=0x0000000a;
-  ok(eth_rlp_list(&erlp) == 1);
-    ok(eth_rlp_uint32(&erlp, &ed1) == 1);
-    ok(eth_rlp_uint32(&erlp, &ed2) == 1);
-  ok(eth_rlp_list_end(&erlp) == 1);
+  ok(eth_rlp_init(&rlp0, ETH_RLP_ENCODE) == 1);
 
-  char *ehex;
-  ok(eth_rlp_to_hex(&ehex, &erlp) > 0);
-  ok(strncmp(ehex, "ca84751aa49d840000000a", strlen(ehex)) == 0);
-  ok(eth_rlp_free(&erlp) == 1);
-  free(ehex);
+  ok(eth_rlp_array(&rlp0) == 1);
+    ok(eth_rlp_uint32(&rlp0, &d0) == 1);
+  ok(eth_rlp_array_end(&rlp0) == 1);
 
-  struct eth_rlp drlp;
-  ok(eth_rlp_init(&drlp, ETH_RLP_DECODE) == 1);
-  char *dhex = "ca84928ca2cc840000000c";
-  ok(eth_rlp_from_hex(&drlp, dhex, -1) == 1);
+  ok(eth_rlp_to_hex(&hex, &rlp0) == 12);
+  is(hex, "c58462d07b34");
+  ok(eth_rlp_free(&rlp0) == 1);
+  free(hex);
 
-  uint32_t dd1=0, dd2=0;
-  ok(eth_rlp_list(&drlp) == 1);
-    ok(eth_rlp_uint32(&drlp, &dd1) == 1);
-    ok(eth_rlp_uint32(&drlp, &dd2) == 1);
-    ok(eth_rlp_uint32(&drlp, &dd2) == -1);
-  ok(eth_rlp_list_end(&drlp) == 1);
-  ok(dd1 == 0x928ca2cc);
-  ok(dd2 == 0x0000000c);
-  ok(eth_rlp_free(&drlp) == 1);
+
+  ok(eth_rlp_from_hex(&rlp1, "0xc5842a6ba6af", -1) == 1);
+  ok(eth_rlp_array(&rlp1) == 1);
+    ok(eth_rlp_uint32(&rlp1, &d1) == 1);
+  ok(eth_rlp_array_end(&rlp1) == 1);
+  ok(eth_rlp_free(&rlp1) == 1);
+  ok(d1 == 0x2a6ba6af);
 }
 
 void test_eth_rlp_uint64(void) {
-  struct eth_rlp erlp;
-  ok(eth_rlp_init(&erlp, ETH_RLP_ENCODE) == 1);
+  struct eth_rlp rlp0, rlp1;
+  uint64_t d0=0xbba4fcad9c797e11, d1;
+  char *hex;
 
-  uint64_t ed1=0x751aa49d, ed2=0xa6e7a8734fa234ad;
-  ok(eth_rlp_list(&erlp) == 1);
-    ok(eth_rlp_uint64(&erlp, &ed1) == 1);
-    ok(eth_rlp_uint64(&erlp, &ed2) == 1);
-  ok(eth_rlp_list_end(&erlp) == 1);
+  ok(eth_rlp_init(&rlp0, ETH_RLP_ENCODE) == 1);
 
-  char *ehex;
-  ok(eth_rlp_to_hex(&ehex, &erlp) > 0);
-  ok(strncmp(ehex, "d28800000000751aa49d88a6e7a8734fa234ad", strlen(ehex)) == 0);
-  ok(eth_rlp_free(&erlp) == 1);
-  free(ehex);
+  ok(eth_rlp_array(&rlp0) == 1);
+    ok(eth_rlp_uint64(&rlp0, &d0) == 1);
+  ok(eth_rlp_array_end(&rlp0) == 1);
 
-  struct eth_rlp drlp;
-  ok(eth_rlp_init(&drlp, ETH_RLP_DECODE) == 1);
-  char *dhex = "d2880000000000000239886aada0ec555b5cf4";
-  ok(eth_rlp_from_hex(&drlp, dhex, -1) == 1);
+  ok(eth_rlp_to_hex(&hex, &rlp0) == 20);
+  is(hex, "c988bba4fcad9c797e11");
+  ok(eth_rlp_free(&rlp0) == 1);
+  free(hex);
 
-  uint64_t dd1=0, dd2=0;
-  ok(eth_rlp_list(&drlp) == 1);
-    ok(eth_rlp_uint64(&drlp, &dd1) == 1);
-    ok(eth_rlp_uint64(&drlp, &dd2) == 1);
-    ok(eth_rlp_uint64(&drlp, &dd2) == -1);
-  ok(eth_rlp_list_end(&drlp) == 1);
-  ok(dd1 == 0x0000000000000239);
-  ok(dd2 == 0x6aada0ec555b5cf4);
-  ok(eth_rlp_free(&drlp) == 1);
+
+  ok(eth_rlp_from_hex(&rlp1, "0xc98879d27c6d2d1fb824", -1) == 1);
+  ok(eth_rlp_array(&rlp1) == 1);
+    ok(eth_rlp_uint64(&rlp1, &d1) == 1);
+  ok(eth_rlp_array_end(&rlp1) == 1);
+  ok(eth_rlp_free(&rlp1) == 1);
+  ok(d1 == 0x79d27c6d2d1fb824);
 }
 
 void test_eth_rlp_bytes(void) {
-  struct eth_rlp erlp;
-  ok(eth_rlp_init(&erlp, ETH_RLP_ENCODE) == 1);
+  struct eth_rlp rlp0, rlp1;
+  uint8_t d0[] = {0x8f, 0x70}, *b0 = d0, *b1,
+          b2[] = {0xd2, 0x25, 0xc1};
+  size_t b0len = 2, b1len;
+  char *hex;
 
-  size_t eblen = 3;
-  uint8_t *ebytes = (uint8_t*)malloc(eblen);
-  ebytes[0] = 0xff;
-  ebytes[1] = 0xc8;
-  ebytes[2] = 0x1b;
-  ok(eth_rlp_list(&erlp) == 1);
-    ok(eth_rlp_bytes(&erlp, &ebytes, &eblen) == 1);
-  ok(eth_rlp_list_end(&erlp) == 1);
-  free(ebytes);
+  ok(eth_rlp_init(&rlp0, ETH_RLP_ENCODE) == 1);
 
-  char *ehex;
-  ok(eth_rlp_to_hex(&ehex, &erlp) > 0);
-  ok(strncmp(ehex, "c483ffc81b", strlen(ehex)) == 0);
-  free(ehex);
-  ok(eth_rlp_free(&erlp) == 1);
+  ok(eth_rlp_array(&rlp0) == 1);
+    ok(eth_rlp_bytes(&rlp0, &b0, &b0len) == 1);
+  ok(eth_rlp_array_end(&rlp0) == 1);
 
-  struct eth_rlp drlp;
-  ok(eth_rlp_init(&drlp, ETH_RLP_DECODE) == 1);
-  char *dhex = "c484ba00acc4";
-  ok(eth_rlp_from_hex(&drlp, dhex, -1) == 1);
-  uint8_t *dbytes = NULL;
-  size_t dblen = 0;
+  ok(eth_rlp_to_hex(&hex, &rlp0) == 8);
+  ok(eth_rlp_free(&rlp0) == 1);
+  is(hex, "c3828f70");
+  free(hex);
 
-  ok(eth_rlp_list(&drlp) == 1);
-    ok(eth_rlp_bytes(&drlp, &dbytes, &dblen) == 1);
-  ok(eth_rlp_list_end(&drlp) == 1);
 
-  ok(dblen == 4);
-  // TODO: compare it using "cmp_mem"
-  ok(dbytes[0] == 0xba);
-  ok(dbytes[1] == 0x00);
-  ok(dbytes[2] == 0xac);
-  ok(dbytes[3] == 0xc4);
-  free(dbytes);
+  ok(eth_rlp_from_hex(&rlp1, "0xc483d225c1", -1) == 1);
+  ok(eth_rlp_array(&rlp1) == 1);
+    ok(eth_rlp_bytes(&rlp1, &b1, &b1len) == 1);
+  ok(eth_rlp_array_end(&rlp1) == 1);
+  ok(eth_rlp_free(&rlp1) == 1);
+
+  cmp_mem(b2, b1, b1len);
+  ok(b1len == 3);
+  free(b1);
 }
 
 void test_eth_rlp_hex(void) {
-  struct eth_rlp erlp;
-  ok(eth_rlp_init(&erlp, ETH_RLP_ENCODE) == 1);
+  struct eth_rlp rlp0, rlp1;
+  char *hex0 = "0x78d80a80ec11105a", *hex1;
+  int hex1len;
 
-  char *ehex = "0x78d80a80ec11105a";
-  int ehex_size = -1;
-  ok(eth_rlp_list(&erlp) == 1);
-    ok(eth_rlp_hex(&erlp, &ehex, &ehex_size) == 1);
-  ok(eth_rlp_list_end(&erlp) == 1);
+  ok(eth_rlp_init(&rlp0, ETH_RLP_ENCODE) == 1);
 
-  char *rhex = NULL;
-  int rsize = eth_rlp_to_hex(&rhex, &erlp);
-  is(rhex, "c98878d80a80ec11105a");
-  ok(rsize == 20);
+  ok(eth_rlp_array(&rlp0) == 1);
+    ok(eth_rlp_hex(&rlp0, &hex0, NULL) == 1);
+  ok(eth_rlp_array_end(&rlp0) == 1);
 
-  struct eth_rlp drlp;
-  char *dhex = "c9881acd13d3e50bd6e0";
-  int dsize = 20;
-  ok(eth_rlp_init(&drlp, ETH_RLP_DECODE));
-  ok(eth_rlp_from_hex(&drlp, dhex, -1));
+  ok(eth_rlp_to_hex(&hex0, &rlp0) == 20);
+  ok(eth_rlp_free(&rlp0) == 1);
+  is(hex0, "c98878d80a80ec11105a");
+  free(hex0);
 
-  ok(eth_rlp_list(&drlp) == 1);
-    ok(eth_rlp_hex(&drlp, &dhex, &dsize) == 1);
-  ok(eth_rlp_list_end(&drlp) == 1);
-  is(dhex, "1acd13d3e50bd6e0");
-  ok(dsize == 16);
+
+  ok(eth_rlp_from_hex(&rlp1, "0xc5849a23483a", -1) == 1);
+  ok(eth_rlp_array(&rlp1) == 1);
+    ok(eth_rlp_hex(&rlp1, &hex1, &hex1len) == 1);
+  ok(eth_rlp_array_end(&rlp1) == 1);
+  ok(eth_rlp_free(&rlp1) == 1);
+
+  is(hex1, "9a23483a");
+  ok(hex1len == 8);
+  free(hex1);
 }
 
 void test_eth_rlp_address(void) {
-  struct eth_rlp erlp;
-  char *eaddr = "0x86C4dDdd08F8153E50247eaB59e500c043F99BfF";
-  ok(eth_rlp_init(&erlp, ETH_RLP_ENCODE) == 1);
-  ok(eth_rlp_list(&erlp) == 1);
-    ok(eth_rlp_address(&erlp, &eaddr) == 1);
-  ok(eth_rlp_list_end(&erlp) == 1);
+  struct eth_rlp rlp0, rlp1;
+  char *addr0 = "0x86C4dDdd08F8153E50247eaB59e500c043F99BfF",
+       *addr1, *hex0;
 
-  char *eaddrrlp;
-  ok(eth_rlp_to_hex(&eaddrrlp, &erlp) > 0);
-  is(eaddrrlp, "d59486c4dddd08f8153e50247eab59e500c043f99bff");
-  ok(eth_rlp_free(&erlp) == 1);
+  ok(eth_rlp_init(&rlp0, ETH_RLP_ENCODE) == 1);
+  ok(eth_rlp_array(&rlp0) == 1);
+    ok(eth_rlp_address(&rlp0, &addr0) == 1);
+  ok(eth_rlp_array_end(&rlp0) == 1);
 
-  struct eth_rlp drlp;
-  char *daddrrlp = "d59486c4dddd08f8153e50247eab59e500c043f99bff", *daddr;
-  ok(eth_rlp_init(&drlp, ETH_RLP_DECODE) == 1);
-  ok(eth_rlp_from_hex(&drlp, daddrrlp, -1) == 1);
+  ok(eth_rlp_to_hex(&hex0, &rlp0) == 44);
+  ok(eth_rlp_free(&rlp0) == 1);
+  is(hex0, "d59486c4dddd08f8153e50247eab59e500c043f99bff");
+  free(hex0);
 
-  ok(eth_rlp_list(&drlp) == 1);
-    ok(eth_rlp_address(&drlp, &daddr) == 1);
-  ok(eth_rlp_list_end(&drlp) == 1);
-  is(daddr, "86c4dddd08f8153e50247eab59e500c043f99bff");
-  ok(eth_rlp_free(&drlp) == 1);
+
+  ok(eth_rlp_from_hex(&rlp1, "0xd59486c4dddd08f8153e50247eab59e500c043f99bff", -1) == 1);
+  ok(eth_rlp_array(&rlp1) == 1);
+    ok(eth_rlp_address(&rlp1, &addr1) == 1);
+  ok(eth_rlp_array_end(&rlp1) == 1);
+  ok(eth_rlp_free(&rlp1) == 1);
+
+  is(addr1, "86c4dddd08f8153e50247eab59e500c043f99bff");
+  free(addr1);
 }
