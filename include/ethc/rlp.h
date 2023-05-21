@@ -36,9 +36,10 @@ ETHC_EXPORT int eth_rlp_array(struct eth_rlp *rlp);
 ETHC_EXPORT int eth_rlp_array_end(struct eth_rlp *rlp);
 ETHC_EXPORT int eth_rlp_bytes(struct eth_rlp *rlp, uint8_t **bytes, size_t *len);
 ETHC_EXPORT int eth_rlp_hex(struct eth_rlp *rlp, char **hex, int *len);
-ETHC_EXPORT int eth_rlp_to_hex(char **dest, struct eth_rlp *src);
-ETHC_EXPORT int eth_rlp_from_hex(struct eth_rlp *dest, char *hex, int len);
 ETHC_EXPORT int eth_rlp_len(struct eth_rlp *rlp, size_t *len, uint8_t *base);
+ETHC_EXPORT int eth_rlp_to_hex(char **dest, struct eth_rlp *src);
+ETHC_EXPORT int eth_rlp_to_bytes(uint8_t **dest, size_t *len, struct eth_rlp *src);
+ETHC_EXPORT int eth_rlp_from_hex(struct eth_rlp *dest, char *hex, int len);
 ETHC_EXPORT int eth_rlp_free(struct eth_rlp *rlp);
 
 #ifdef __cplusplus

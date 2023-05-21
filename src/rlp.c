@@ -305,56 +305,6 @@ int eth_rlp_hex(struct eth_rlp *rlp, char **hex, int *len) {
   return -1;
 }
 
-int eth_rlp_to_hex(char **dest, struct eth_rlp *src) {
-  struct ethc_rlp_frame *cframe;
-  char *buf;
-  int hsize;
-
-  if (dest == NULL || src == NULL)
-    return -1;
-
-  cframe = src->cframe;
-
-  hsize = eth_hex_from_bytes(&buf, cframe->buf, cframe->len);
-  if (hsize <= 0)
-    return -1;
-
-  *dest = buf;
-  return hsize;
-}
-
-int eth_rlp_from_hex(struct eth_rlp *dest, char *hex, int len) {
-  struct ethc_rlp_frame *nframe;
-  uint8_t *buf, sbuf;
-
-  if (dest == NULL || hex == NULL)
-    return -1;
-
-  if (len < 0)
-    len = (int)strlen(hex); /* TODO: NOT SAFE */
-
-  if ((sbuf = eth_hex_to_bytes(&buf, hex, len)) <= 0)
-    return -1;
-
-  if (eth_rlp_frame_init(&nframe, buf, sbuf) <= 0)
-    return -1;
-
-  dest->cframe = nframe;
-  dest->m = ETH_RLP_DECODE;
-  return 1;
-}
-
-int eth_rlp_free(struct eth_rlp *dest) {
-  struct ethc_rlp_frame *cframe;
-  if (dest == NULL)
-    return -1;
-
-  cframe = dest->cframe;
-
-  free(cframe->buf);
-  return 1;
-}
-
 int eth_rlp_uint8(struct eth_rlp *rlp, uint8_t *d) {
   uint8_t data[1], *bytes = data;
   size_t blen = 0;
@@ -408,7 +358,6 @@ int eth_rlp_uint16(struct eth_rlp *rlp, uint16_t *d) {
   return -1;
 }
 
-#include <stdio.h>
 int eth_rlp_uint32(struct eth_rlp *rlp, uint32_t *d) {
   uint8_t data[4], *bytes = data;
   size_t blen = 0;
@@ -503,4 +452,74 @@ int eth_rlp_address(struct eth_rlp *rlp, char **addr) {
     return eth_rlp_hex(rlp, addr, &hexlen);
 
   return -1;
+}
+
+int eth_rlp_to_hex(char **dest, struct eth_rlp *src) {
+  struct ethc_rlp_frame *cframe;
+  char *buf;
+  int hsize;
+
+  if (dest == NULL || src == NULL)
+    return -1;
+
+  cframe = src->cframe;
+
+  hsize = eth_hex_from_bytes(&buf, cframe->buf, cframe->len);
+  if (hsize <= 0)
+    return -1;
+
+  *dest = buf;
+  return hsize;
+}
+
+int eth_rlp_to_bytes(uint8_t **bytes, size_t *len, struct eth_rlp *src) {
+  struct ethc_rlp_frame *cframe;
+  uint8_t *buf;
+
+  if (bytes == NULL || len == NULL || src == NULL)
+    return -1;
+
+  cframe = src->cframe;
+
+  buf = (uint8_t*)malloc(cframe->len);
+  if (buf == NULL)
+    return -1;
+
+  memcpy(buf, cframe->buf, cframe->len);
+
+  *bytes = buf;
+  *len = cframe->len;
+  return 1;
+}
+
+int eth_rlp_from_hex(struct eth_rlp *dest, char *hex, int len) {
+  struct ethc_rlp_frame *nframe;
+  uint8_t *buf, sbuf;
+
+  if (dest == NULL || hex == NULL)
+    return -1;
+
+  if (len < 0)
+    len = (int)strlen(hex); /* TODO: NOT SAFE */
+
+  if ((sbuf = eth_hex_to_bytes(&buf, hex, len)) <= 0)
+    return -1;
+
+  if (eth_rlp_frame_init(&nframe, buf, sbuf) <= 0)
+    return -1;
+
+  dest->cframe = nframe;
+  dest->m = ETH_RLP_DECODE;
+  return 1;
+}
+
+int eth_rlp_free(struct eth_rlp *dest) {
+  struct ethc_rlp_frame *cframe;
+  if (dest == NULL)
+    return -1;
+
+  cframe = dest->cframe;
+
+  free(cframe->buf);
+  return 1;
 }

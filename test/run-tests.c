@@ -53,6 +53,8 @@ int main() {
   test_eth_rlp_bytes();
   test_eth_rlp_hex();
   test_eth_rlp_address();
+  test_eth_rlp_to_hex();
+  test_eth_rlp_to_bytes();
 
   done_testing();
   return 0;

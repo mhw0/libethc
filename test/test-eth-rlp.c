@@ -189,3 +189,37 @@ void test_eth_rlp_address(void) {
   is(addr1, "86c4dddd08f8153e50247eab59e500c043f99bff");
   free(addr1);
 }
+
+void test_eth_rlp_to_hex(void) {
+  struct eth_rlp rlp0;
+  uint8_t d0 = 0xff;
+  char *hex;
+
+  ok(eth_rlp_init(&rlp0, ETH_RLP_ENCODE) == 1);
+
+  ok(eth_rlp_array(&rlp0) == 1);
+    ok(eth_rlp_uint8(&rlp0, &d0) == 1);
+  ok(eth_rlp_array_end(&rlp0) == 1);
+
+  ok(eth_rlp_to_hex(&hex, &rlp0) == 6);
+  is(hex, "c281ff");
+  ok(eth_rlp_free(&rlp0) == 1);
+  free(hex);
+}
+
+void test_eth_rlp_to_bytes(void) {
+  struct eth_rlp rlp0;
+  uint8_t d0 = 0xac, *bout, bytes[3] = {0xc2, 0x81, 0xac};
+  size_t boutlen;
+
+  ok(eth_rlp_init(&rlp0, ETH_RLP_ENCODE) == 1);
+
+  ok(eth_rlp_array(&rlp0) == 1);
+    ok(eth_rlp_uint8(&rlp0, &d0) == 1);
+  ok(eth_rlp_array_end(&rlp0) == 1);
+
+  ok(eth_rlp_to_bytes(&bout, &boutlen, &rlp0) == 1);
+  ok(eth_rlp_free(&rlp0) == 1);
+  cmp_mem(bout, bytes, boutlen);
+  ok(boutlen == 3);
+}
