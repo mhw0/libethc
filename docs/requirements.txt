@@ -1,0 +1,12 @@
+alabaster==0.7.13
+breathe==4.35.0
+Sphinx==6.2.1
+sphinx-rtd-theme==1.2.0
+sphinx-sitemap==2.5.0
+sphinxcontrib-applehelp==1.0.4
+sphinxcontrib-devhelp==1.0.2
+sphinxcontrib-htmlhelp==2.0.1
+sphinxcontrib-jquery==4.1
+sphinxcontrib-jsmath==1.0.1
+sphinxcontrib-qthelp==1.0.3
+sphinxcontrib-serializinghtml==1.1.5
