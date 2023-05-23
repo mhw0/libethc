@@ -10,10 +10,24 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: '3.9'
-      - name: install dependencies
-        run:
-          pip install -r docs/requirements.txt
-      - name: build
+      - uses: actions/checkout@v2
+        with:
+          repository: bitcoin-core/secp256k1
+          path: libsecp256k1
+      - name: Build and install libsecp256k1
+        run: |
+          cd libsecp256k1
+          ./autogen.sh
+          ./configure --enable-module-recovery --enable-benchmark=no --enable-tests=no
+          make
+          sudo make install
+          pkg-config --cflags --libs libsecp256k1
+      - name: Install dependencies
+        run: |
+          sudo apt-get install doxygen
+          sudo apt-get install python3-sphinx
+          sudo apt-get install python3-breathe
+      - name: Build docs
         run: |
           mkdir build
           cd build
