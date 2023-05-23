@@ -3,19 +3,21 @@
 #include <ethc/unit.h>
 
 void test_eth_unit_convert(void) {
-  char *out1 = eth_unit_convert("1", ETH_UNIT_ETHER, ETH_UNIT_WEI);
-  const char *exp1 = "1000000000000000000";
-  is(out1, exp1);
+  char *r0, *r1, *r2, *r3 = NULL;
 
-  char *out2 = eth_unit_convert("1", ETH_UNIT_WEI, ETH_UNIT_ETHER);
-  const char *exp2 = "0.000000000000000001";
-  is(out2, exp2);
+  ok(eth_unit_convert(&r0, "1", ETH_UNIT_ETHER, ETH_UNIT_WEI) == 1);
+  is(r0, "1000000000000000000");
+  free(r0);
 
-  char *out3 = eth_unit_convert("1000000000000000000", ETH_UNIT_WEI, ETH_UNIT_ETHER);
-  const char *exp3 = "1";
-  is(out3, exp3);
+  ok(eth_unit_convert(&r1, "1", ETH_UNIT_WEI, ETH_UNIT_ETHER) == 1);
+  is(r1, "0.000000000000000001");
+  free(r1);
 
-  char *out4 = eth_unit_convert("abc", ETH_UNIT_ETHER, ETH_UNIT_WEI);
-  const char *exp4 = NULL;
-  is(out4, exp4);
+  ok(eth_unit_convert(&r2, "1000000000000000000", ETH_UNIT_WEI, ETH_UNIT_ETHER) == 1);
+  is(r2, "1");
+  free(r2);
+
+  ok(eth_unit_convert(&r3, "abc", ETH_UNIT_ETHER, ETH_UNIT_WEI) == -1);
+  is(r3, NULL);
+  free(r3);
 }

@@ -31,7 +31,7 @@ extern "C" {
 #define ETH_UNIT_GETHER "1000000000000000000000000000"
 #define ETH_UNIT_TETHER "1000000000000000000000000000000"
 
-ETHC_EXPORT char *eth_unit_convert(const char *amount, const char *from, const char *to);
+ETHC_EXPORT int eth_unit_convert(char **dest, const char *amount, const char *from, const char *to);
 
 #ifdef __cplusplus
 }
