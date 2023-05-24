@@ -16,4 +16,6 @@ libethc documentation
   unit
   keccak
 
+  examples
+
   changelog
