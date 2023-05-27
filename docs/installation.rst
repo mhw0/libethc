@@ -24,7 +24,7 @@ If the both dependencies are installed properly, `pkg-config` should print a res
 
 **Dev dependencies:**
 
-* `cmake <https://cmake.org>`_ >= ``?`` - Cross-platform build automation tool.
+* `cmake <https://cmake.org>`_ >= ``3.13`` - Cross-platform build automation tool.
 
 Building from source
 --------------------
