@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <assert.h>
-#include <ethc/account.h>
 #include <ethc/ecdsa.h>
 #include <ethc/rlp.h>
 #include <ethc/keccak256.h>
@@ -8,7 +7,6 @@
 #define ok(ethcop) assert(ethcop >= 0)
 
 int main(void) {
-  struct eth_account account;
   struct eth_rlp rlp0, rlp1;
   struct eth_ecdsa_signature sign;
   uint8_t privkey[] = {0xdf, 0x57, 0x08, 0x9f, 0xeb, 0xba, 0xcf, 0x7b,
