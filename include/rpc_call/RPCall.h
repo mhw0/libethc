@@ -106,5 +106,8 @@ json RPC(string protocol, unordered_map<string, string> parameters, string url, 
 	}
 
 	json JsonForm = json::parse(gs_strLastResponse);
+	/* always cleanup */
+	curl_easy_cleanup(curl);
+	curl_global_cleanup();
 	return JsonForm;
 }
