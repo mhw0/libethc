@@ -33,7 +33,6 @@ string joinQueryParameters(const unordered_map<string, string> &parameters)
 		}
 	}
 	queryString += "}";
-	cout << queryString << endl;
 	return queryString;
 }
 
