@@ -26,6 +26,7 @@ void test_eth_abi_uint8(void);
 void test_eth_abi_uint16(void);
 void test_eth_abi_uint32(void);
 void test_eth_abi_uint64(void);
+void test_eth_abi_mpint(void);
 void test_eth_abi_bytes(void);
 void test_eth_abi_call(void);
 void test_eth_abi_to_hex(void);

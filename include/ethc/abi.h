@@ -8,6 +8,7 @@ extern "C" {
 #include "ethc-common.h"
 #include <stddef.h>
 #include <stdint.h>
+#include <gmp.h>
 
 #define ETH_ABI_ENCODE 0
 #define ETH_ABI_DECODE 1
@@ -132,6 +133,15 @@ ETHC_EXPORT int eth_abi_uint32(struct eth_abi *abi, uint32_t *d);
  * @return `1` on success, `-1` otherwise.
  */
 ETHC_EXPORT int eth_abi_uint64(struct eth_abi *abi, uint64_t *d);
+
+/*!
+ * @brief Encodes/decodes arbitrarily large integer.
+ *
+ * @param[in] abi Target abi.
+ * @param[inout] mpz Initialized mpz_t to read/write the data from/to.
+ * @return `1` on success, `-1` otherwise.
+ */
+ETHC_EXPORT int eth_abi_mpint(struct eth_abi *abi, mpz_t mpz);
 
 /*!
  * @brief Encodes/decodes address.

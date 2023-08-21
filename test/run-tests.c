@@ -38,6 +38,7 @@ int main() {
   test_eth_abi_int16();
   test_eth_abi_int32();
   test_eth_abi_int64();
+  test_eth_abi_mpint();
   test_eth_abi_bytes8();
   test_eth_abi_bytes16();
   test_eth_abi_bytes32();
