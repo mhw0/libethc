@@ -1,6 +1,8 @@
 #ifndef ETHC_ABI_H
 #define ETHC_ABI_H
 
+#include <gmp.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -8,7 +10,6 @@ extern "C" {
 #include "ethc-common.h"
 #include <stddef.h>
 #include <stdint.h>
-#include <gmp.h>
 
 #define ETH_ABI_ENCODE 0
 #define ETH_ABI_DECODE 1
