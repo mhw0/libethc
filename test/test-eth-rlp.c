@@ -106,6 +106,30 @@ void test_eth_rlp_uint64(void) {
   ok(d1 == 0x79d27c6d2d1fb824);
 }
 
+void test_eth_rlp_uint(void) {
+  struct eth_rlp rlp0, rlp1;
+  uint64_t d0=0x9c797e11, d1 = 0;
+  char *hex;
+
+  ok(eth_rlp_init(&rlp0, ETH_RLP_ENCODE) == 1);
+
+  ok(eth_rlp_array(&rlp0) == 1);
+    ok(eth_rlp_uint(&rlp0, &d0) == 1);
+  ok(eth_rlp_array_end(&rlp0) == 1);
+
+  ok(eth_rlp_to_hex(&hex, &rlp0) == 12);
+  is(hex, "c5849c797e11");
+  ok(eth_rlp_free(&rlp0) == 1);
+  free(hex);
+
+  ok(eth_rlp_from_hex(&rlp1, "0xc38101", -1) == 1);
+  ok(eth_rlp_array(&rlp1) == 1);
+    ok(eth_rlp_uint(&rlp1, &d1) == 1);
+  ok(eth_rlp_array_end(&rlp1) == 1);
+  ok(eth_rlp_free(&rlp1) == 1);
+  ok(d1 == 0x01);
+}
+
 void test_eth_rlp_bytes(void) {
   struct eth_rlp rlp0, rlp1;
   uint8_t d0[] = {0x8f, 0x70}, *b0 = d0, *b1,

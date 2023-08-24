@@ -31,6 +31,18 @@ ETHC_EXPORT int eth_rlp_uint8(struct eth_rlp *rlp, uint8_t *d);
 ETHC_EXPORT int eth_rlp_uint16(struct eth_rlp *rlp, uint16_t *d);
 ETHC_EXPORT int eth_rlp_uint32(struct eth_rlp *rlp, uint32_t *d);
 ETHC_EXPORT int eth_rlp_uint64(struct eth_rlp *rlp, uint64_t *d);
+
+/*!
+ * @brief Encodes/decodes at most 64 bit unsigned integer.
+ * @details The difference between this function and `eth_rlp_uint64` is that,
+ *          `eth_rlp_uint64` reads exactly 8 bytes from the integer, while this
+ *          function will read bytes based on the size of the integer.
+ *
+ * @param[in] rlp Target rlp.
+ * @param[inout] d Ponter to uint64_t to read/write the data from/to.
+ * @return `1` on success, `-1` otherwise.
+ */
+ETHC_EXPORT int eth_rlp_uint(struct eth_rlp *rlp, uint64_t *d);
 ETHC_EXPORT int eth_rlp_address(struct eth_rlp *rlp, char **addr);
 ETHC_EXPORT int eth_rlp_array(struct eth_rlp *rlp);
 ETHC_EXPORT int eth_rlp_array_end(struct eth_rlp *rlp);

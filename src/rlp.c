@@ -432,6 +432,47 @@ int eth_rlp_uint64(struct eth_rlp *rlp, uint64_t *d) {
   return -1;
 }
 
+int eth_rlp_uint(struct eth_rlp *rlp, uint64_t *d) {
+  size_t offset, len;
+  uint8_t base;
+
+  if (rlp->m == ETH_RLP_ENCODE) {
+    if (*d <= 0xff) {
+      return eth_rlp_uint8(rlp, (uint8_t*)d);
+    } else if (*d <= 0xffff) {
+      return eth_rlp_uint16(rlp, (uint16_t*)d);
+    } else if (*d <= 0xffffffff) {
+      return eth_rlp_uint32(rlp, (uint32_t*)d);
+    } else if (*d <= 0xffffffffffffffff) {
+      return eth_rlp_uint64(rlp, d);
+    }
+
+    return -1;
+  }
+
+  if (rlp->m == ETH_RLP_DECODE) {
+    offset = rlp->cframe->offset;
+
+    if (eth_rlp_len(rlp, &len, &base) <= 0)
+      return -1;
+
+    rlp->cframe->offset = offset;
+
+    if (len <= 1)
+      return eth_rlp_uint8(rlp, (uint8_t*)d);
+    else if (len <= 2)
+      return eth_rlp_uint16(rlp, (uint16_t*)d);
+    else if (len <= 4)
+      return eth_rlp_uint32(rlp, (uint32_t*)d);
+    else if (len <= 8)
+      return eth_rlp_uint64(rlp, (uint64_t*)d);
+
+    return -1;
+  }
+
+  return -1;
+}
+
 int eth_rlp_address(struct eth_rlp *rlp, char **addr) {
   int hexlen;
 

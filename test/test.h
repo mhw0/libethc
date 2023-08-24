@@ -52,6 +52,7 @@ void test_eth_rlp_uint8(void);
 void test_eth_rlp_uint16(void);
 void test_eth_rlp_uint32(void);
 void test_eth_rlp_uint64(void);
+void test_eth_rlp_uint(void);
 void test_eth_rlp_address(void);
 void test_eth_rlp_bytes(void);
 void test_eth_rlp_hex(void);

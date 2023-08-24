@@ -51,6 +51,7 @@ int main() {
   test_eth_rlp_uint16();
   test_eth_rlp_uint32();
   test_eth_rlp_uint64();
+  test_eth_rlp_uint();
   test_eth_rlp_bytes();
   test_eth_rlp_hex();
   test_eth_rlp_address();
