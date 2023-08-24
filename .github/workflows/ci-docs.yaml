@@ -1,6 +1,12 @@
 name: ci-docs
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+    - 'main'
+    paths:
+    - '.github/**'
+    - 'docs/**'
 
 permissions:
   contents: read
