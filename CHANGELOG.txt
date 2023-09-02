@@ -1,3 +1,15 @@
+v1.1.0 (2023-09-02)
+-------------------
+**ADDED:**
+
+* abi: add eth_abi_mpint (#efd7ee0)
+* rlp: add eth_rlp_uint (#8ac8ea1)
+
+**FIXED:**
+
+* abi: gmp.h should be before #ifdef __cplusplus block (#b3cf40d)
+* rlp: import rlp.h in ethc.h (#e96db96)
+
 v1.0.1 (2023-08-19)
 -------------------
 **FIXED:**
