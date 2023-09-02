@@ -6,6 +6,7 @@ RLP functions
 .. doxygenfunction:: eth_rlp_uint16
 .. doxygenfunction:: eth_rlp_uint32
 .. doxygenfunction:: eth_rlp_uint64
+.. doxygenfunction:: eth_rlp_uint
 .. doxygenfunction:: eth_rlp_address
 .. doxygenfunction:: eth_rlp_array
 .. doxygenfunction:: eth_rlp_array_end

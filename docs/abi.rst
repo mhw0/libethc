@@ -53,6 +53,7 @@ If a function accepts a nested array (``myfunc(uint8[][])``), the encoding proce
 .. doxygenfunction:: eth_abi_uint16
 .. doxygenfunction:: eth_abi_uint32
 .. doxygenfunction:: eth_abi_uint64
+.. doxygenfunction:: eth_abi_mpint
 .. doxygenfunction:: eth_abi_address
 .. doxygenfunction:: eth_abi_bytes8
 .. doxygenfunction:: eth_abi_bytes16

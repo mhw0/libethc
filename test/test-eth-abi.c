@@ -241,6 +241,35 @@ void test_eth_abi_int64(void) {
   ok(d3 == 0x45fd66a734b67d50);
 }
 
+void test_eth_abi_mpint(void) {
+  struct eth_abi abi0, abi1;
+  size_t hexlen;
+  char *hex;
+  mpz_t mpz0, mpz1;
+
+  mpz_init_set_str(mpz0, "0xffffff0affffffffffffffffffffffffffffffffffffffffffffffffffffffff", 0);
+  mpz_init_set_str(mpz1, "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffbb", 0);
+
+  ok(eth_abi_init(&abi0, ETH_ABI_ENCODE) == 1);
+  ok(eth_abi_mpint(&abi0, mpz0) == 1);
+  ok(eth_abi_mpint(&abi0, mpz1) == 1);
+  ok(eth_abi_to_hex(&abi0, &hex, &hexlen) == 1);
+
+  is(hex, "ffffff0affffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+  mpz_clears(mpz0, mpz1, NULL);
+  free(hex);
+
+
+  ok(eth_abi_from_hex(&abi1,
+        "0000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffff", -1) == 1);
+  mpz_init_set_str(mpz0, "0x0000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffff", 0);
+  mpz_init(mpz1);
+  ok(eth_abi_mpint(&abi1, mpz1) == 1);
+  ok(mpz_cmp(mpz0, mpz1) == 0);
+  mpz_clears(mpz0, mpz1, NULL);
+}
+
 void test_eth_abi_bytes8() {
   struct eth_abi abi0, abi1;
   uint8_t b0[8] = {0xd1, 0x71, 0xf0, 0x4f, 0x6d, 0xd7, 0x69, 0x74}, b1[8];

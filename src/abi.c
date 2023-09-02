@@ -640,6 +640,33 @@ int eth_abi_bytes64(struct eth_abi *abi, uint8_t *bytes) {
   return -1;
 }
 
+int eth_abi_mpint(struct eth_abi *abi, mpz_t mpz) {
+  uint8_t bytes[32] = {0};
+  mpz_t mpztmp, mpzmask;
+
+  if (abi->m == ETH_ABI_ENCODE) {
+    mpz_init_set_str(mpzmask, "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", 0);
+
+    /* keep only 256 bits (one word) */
+    mpz_init(mpztmp);
+    mpz_and(mpztmp, mpz, mpzmask);
+
+    mpz_export(bytes, NULL, 1, sizeof(uint8_t), 0, 0, mpz);
+    mpz_clears(mpztmp, mpzmask, NULL);
+    return eth_abi_bytes32(abi, bytes);
+  }
+
+  if (abi->m == ETH_ABI_DECODE) {
+    if (eth_abi_bytes32(abi, bytes) == 0)
+      return 0;
+
+    mpz_import(mpz, 32, 1, sizeof(uint8_t), 0, 0, bytes);
+    return 1;
+  }
+
+  return 0;
+}
+
 int eth_abi_bytes(struct eth_abi *abi, uint8_t **bytes, size_t *len) {
   struct ethc_abi_frame *cframe;
   struct ethc_abi_buf *cframebuf, *dybuf;
