@@ -245,19 +245,22 @@ void test_eth_abi_mpint(void) {
   struct eth_abi abi0, abi1;
   size_t hexlen;
   char *hex;
-  mpz_t mpz0, mpz1;
+  mpz_t mpz0, mpz1, mpz2;
 
   mpz_init_set_str(mpz0, "0xff", 0);
-  mpz_init_set_str(mpz1, "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffbb", 0);
+  mpz_init_set_str(mpz1, "0xfff", 0);
+  mpz_init_set_str(mpz2, "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffbb", 0);
 
   ok(eth_abi_init(&abi0, ETH_ABI_ENCODE) == 1);
   ok(eth_abi_mpint(&abi0, mpz0) == 1);
   ok(eth_abi_mpint(&abi0, mpz1) == 1);
+  ok(eth_abi_mpint(&abi0, mpz2) == 1);
   ok(eth_abi_to_hex(&abi0, &hex, &hexlen) == 1);
 
   is(hex, "00000000000000000000000000000000000000000000000000000000000000ff"
+          "0000000000000000000000000000000000000000000000000000000000000fff"
           "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
-  mpz_clears(mpz0, mpz1, NULL);
+  mpz_clears(mpz0, mpz1, mpz2, NULL);
   free(hex);
 
   ok(eth_abi_from_hex(&abi1,
