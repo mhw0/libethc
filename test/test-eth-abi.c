@@ -247,7 +247,7 @@ void test_eth_abi_mpint(void) {
   char *hex;
   mpz_t mpz0, mpz1;
 
-  mpz_init_set_str(mpz0, "0xffffff0affffffffffffffffffffffffffffffffffffffffffffffffffffffff", 0);
+  mpz_init_set_str(mpz0, "0xff", 0);
   mpz_init_set_str(mpz1, "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffbb", 0);
 
   ok(eth_abi_init(&abi0, ETH_ABI_ENCODE) == 1);
@@ -255,11 +255,10 @@ void test_eth_abi_mpint(void) {
   ok(eth_abi_mpint(&abi0, mpz1) == 1);
   ok(eth_abi_to_hex(&abi0, &hex, &hexlen) == 1);
 
-  is(hex, "ffffff0affffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+  is(hex, "00000000000000000000000000000000000000000000000000000000000000ff"
           "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
   mpz_clears(mpz0, mpz1, NULL);
   free(hex);
-
 
   ok(eth_abi_from_hex(&abi1,
         "0000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffff", -1) == 1);

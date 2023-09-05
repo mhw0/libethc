@@ -642,6 +642,7 @@ int eth_abi_bytes64(struct eth_abi *abi, uint8_t *bytes) {
 
 int eth_abi_mpint(struct eth_abi *abi, mpz_t mpz) {
   uint8_t bytes[32] = {0};
+  size_t size;
   mpz_t mpztmp, mpzmask;
 
   if (abi->m == ETH_ABI_ENCODE) {
@@ -651,8 +652,10 @@ int eth_abi_mpint(struct eth_abi *abi, mpz_t mpz) {
     mpz_init(mpztmp);
     mpz_and(mpztmp, mpz, mpzmask);
 
-    mpz_export(bytes, NULL, 1, sizeof(uint8_t), 0, 0, mpz);
+    size = mpz_sizeinbase(mpztmp, 16) / 2;
+    mpz_export(&(bytes[32]) - size, NULL, 1, sizeof(uint8_t), 0, 0, mpz);
     mpz_clears(mpztmp, mpzmask, NULL);
+
     return eth_abi_bytes32(abi, bytes);
   }
 

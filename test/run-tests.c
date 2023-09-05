@@ -38,7 +38,6 @@ int main() {
   test_eth_abi_int16();
   test_eth_abi_int32();
   test_eth_abi_int64();
-  test_eth_abi_mpint();
   test_eth_abi_bytes8();
   test_eth_abi_bytes16();
   test_eth_abi_bytes32();
@@ -57,6 +56,7 @@ int main() {
   test_eth_rlp_address();
   test_eth_rlp_to_hex();
   test_eth_rlp_to_bytes();
+  test_eth_abi_mpint();
 
   done_testing();
   return 0;
