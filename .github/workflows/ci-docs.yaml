@@ -7,6 +7,7 @@ on:
     paths:
     - '.github/**'
     - 'docs/**'
+    - 'CHANGELOG.txt'
 
 permissions:
   contents: read
