@@ -249,7 +249,7 @@ void test_eth_abi_mpint(void) {
 
   mpz_init_set_str(mpz0, "0xff", 0);
   mpz_init_set_str(mpz1, "0xfff", 0);
-  mpz_init_set_str(mpz2, "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffbb", 0);
+  mpz_init_set_str(mpz2, "0xbbffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", 0);
 
   ok(eth_abi_init(&abi0, ETH_ABI_ENCODE) == 1);
   ok(eth_abi_mpint(&abi0, mpz0) == 1);
