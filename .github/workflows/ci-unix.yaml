@@ -9,6 +9,7 @@ on:
     - 'src/**'
     - 'include/**'
     - 'test/**'
+    - 'libkeccak/**'
     - 'CMakeLists.txt'
   pull_request:
     branches:
@@ -18,6 +19,7 @@ on:
     - 'src/**'
     - 'include/**'
     - 'test/**'
+    - 'libkeccak/**'
     - 'CMakeLists.txt'
      
 jobs:
