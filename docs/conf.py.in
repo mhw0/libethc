@@ -54,7 +54,7 @@ primary_domain = "c"
 # a list of builtin themes.
 #
 html_theme = 'alabaster'
-html_title = 'libethc documentation'
+html_title = 'Open-source Ethereum C library'
 html_theme_options = {
   "description": "Ethereum library for c",
   "sidebar_collapse": False,
