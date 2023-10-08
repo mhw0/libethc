@@ -177,6 +177,7 @@ int eth_abi_array(struct eth_abi *abi, uint64_t *len) {
 
   if (abi->m == ETH_ABI_DECODE) {
     ethc_abi_buf_pr64(dyoffset, cframebuf, cframebuf->offset);
+    dyoffset = cframebuf->offset % 32 != 0 ? dyoffset + 4 : dyoffset;
     ethc_abi_buf_pr64(framelen, cframebuf, dyoffset);
 
     nframebuf = (struct ethc_abi_buf*)malloc(sizeof(struct ethc_abi_buf));
