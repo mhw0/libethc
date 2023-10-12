@@ -281,6 +281,8 @@ int eth_abi_address(struct eth_abi *abi, char **addr) {
     if (eth_hex_from_bytes(addr, tmp, 20) < 0)
       return -1;
 
+    cframebuf->offset += 32;
+
     return 1;
   }
   return -1;
