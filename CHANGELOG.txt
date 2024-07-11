@@ -1,3 +1,15 @@
+v1.1.2 (2024-07-12)
+-------------------
+**ADDED:**
+
+* example: add eip1559 tx example (#42)
+
+**FIXED:**
+
+* rlp: decode long hex (#46)
+* abi: move current frame offset on address
+* abi: do not ignore function selector offset on decode (#34)
+
 v1.1.1 (2023-09-13)
 -------------------
 **FIXED:**
