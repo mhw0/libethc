@@ -247,3 +247,65 @@ void test_eth_rlp_to_bytes(void) {
   cmp_mem(bout, bytes, boutlen);
   ok(boutlen == 3);
 }
+
+void test_eth_rlp_decode_eip1559_tx(void) {
+  // https://sepolia.etherscan.io/tx/0xd116c294d3eb46d5db8602ff38f0aae414fa7950747e20cdefe5982b7bd567f9
+  // This tx is EIP-1559 format, and the Txtype prefix `0x02` has been stripped
+  char *hex =
+      "f8d583aa36a78180843b9aca00851bf08eb000835b8d80942a21bf63839e571c2fc819"
+      "373296e0b50b4d6ad480b8648340f54900000000000000000000000066c444632ae2840a"
+      "a6cd3daa435f359f547ef9d30000000000000000000000005683c35fbbe9811340fba97f"
+      "aea8ef5c33f28be000000000000000000000000000000000000000000000000000000000"
+      "0016e360c001a099c06b4f79b805ae7be2dcd21191e470362c9d66b7cfea90b185015893"
+      "a1477ea03c16ce20c94c5ee0598154007a67fae010769fe3db29a1e40ac9532a91835a0"
+      "c";
+
+  // tx field
+  char *abi_hex;
+  char *to_addr;
+  char *value;
+  char *max_priority_fee_per_gas;
+  char *max_fee_per_gas;
+  char *gas_limit;
+  char *chain_id_hex;
+  uint64_t nonce = 0;
+  uint8_t v = 0;
+  char *r;
+  char *s;
+  size_t rlp0len, rlp1len, siglen = 32;
+
+  // decode tx
+  struct eth_rlp rlp;
+  ok(eth_rlp_from_hex(&rlp, hex, -1) == 1);
+  ok(eth_rlp_array(&rlp) == 1);
+  ok(eth_rlp_hex(&rlp, &chain_id_hex, NULL) == 1);
+  ok(eth_rlp_uint(&rlp, &nonce));
+  ok(eth_rlp_hex(&rlp, &max_priority_fee_per_gas, NULL));
+  ok(eth_rlp_hex(&rlp, &max_fee_per_gas, NULL));
+  ok(eth_rlp_hex(&rlp, &gas_limit, NULL));
+  ok(eth_rlp_address(&rlp, &to_addr));
+  ok(eth_rlp_hex(&rlp, &value, NULL));
+  ok(eth_rlp_hex(&rlp, &abi_hex, NULL));
+  ok(eth_rlp_array(&rlp));  // access list
+  ok(eth_rlp_array_end(&rlp));
+  ok(eth_rlp_uint8(&rlp, &v));
+  ok(eth_rlp_hex(&rlp, &r, NULL));
+  ok(eth_rlp_hex(&rlp, &s, NULL));
+  ok(eth_rlp_array_end(&rlp));
+
+  // check
+  is(chain_id_hex, "aa36a7");
+  ok(nonce == 0x80);
+  is(max_priority_fee_per_gas, "3b9aca00");
+  is(max_fee_per_gas, "1bf08eb000");
+  is(gas_limit, "5b8d80");
+  is(to_addr, "2a21bf63839e571c2fc819373296e0b50b4d6ad4");
+  is(value, "0");
+  is(abi_hex,
+     "8340f54900000000000000000000000066c444632ae2840aa6cd3daa435f359f547ef9d30"
+     "000000000000000000000005683c35fbbe9811340fba97faea8ef5c33f28be00000000000"
+     "00000000000000000000000000000000000000000000000016e360");
+  ok(v == 1);
+  is(r, "99c06b4f79b805ae7be2dcd21191e470362c9d66b7cfea90b185015893a1477e");
+  is(s, "3c16ce20c94c5ee0598154007a67fae010769fe3db29a1e40ac9532a91835a0c");
+}

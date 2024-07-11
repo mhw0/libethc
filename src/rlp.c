@@ -68,9 +68,6 @@ int eth_rlp_array(struct eth_rlp *rlp) {
     if (eth_rlp_len(rlp, NULL, &base) <= 0)
       return -1;
 
-    if (base != 0xc0 && base != 0xf7)
-      return -1;
-
     return 1;
   }
 
@@ -165,7 +162,7 @@ int eth_rlp_len(struct eth_rlp *rlp, size_t *len, uint8_t *base) {
     if (head <= 0x7F) {
       llen = 1;
       bbase = 0;
-    } else if (head <= 0xB7 || head <= 0xF7) {
+    } else if (head <= 0xB7 || (head >= 0xC0 && head <= 0xF7)) {
       bbase = head <= 0xB7 ? 0x80 : 0xC0;
       llen = head - bbase;
       cframe->offset++;
@@ -174,19 +171,20 @@ int eth_rlp_len(struct eth_rlp *rlp, size_t *len, uint8_t *base) {
       llen = head - bbase;
 
       if (llen <= 1) {
-        llen = cframe->buf[cframe->offset++];
         cframe->offset += llen + 1;
+        llen = cframe->buf[cframe->offset++];
       } else if (llen <= 2) {
+        cframe->offset += llen + 2;
         llen = cframe->buf[cframe->offset++] << 0x04;
         llen |= llen | cframe->buf[cframe->offset++];
-        cframe->offset += llen + 2;
       } else if (*len <= 4) {
+        cframe->offset = llen + 4;
         llen = cframe->buf[cframe->offset++] << 0x18;
         llen |= cframe->buf[cframe->offset++] << 0x10;
         llen |= cframe->buf[cframe->offset++] << 0x08;
         llen |= cframe->buf[cframe->offset++];
-        cframe->offset = llen + 4;
       } else if (*len <= 8) {
+        cframe->offset += 8;
         llen = (size_t)cframe->buf[cframe->offset++] << 0x38;
         llen |= (size_t)cframe->buf[cframe->offset++] << 0x30;
         llen |= (size_t)cframe->buf[cframe->offset++] << 0x28;
@@ -195,7 +193,6 @@ int eth_rlp_len(struct eth_rlp *rlp, size_t *len, uint8_t *base) {
         llen |= cframe->buf[cframe->offset++] << 0x10;
         llen |= cframe->buf[cframe->offset++] << 0x08;
         llen |= cframe->buf[cframe->offset++];
-        cframe->offset += 8;
       } else {
         return -1;
       }
@@ -248,9 +245,6 @@ int eth_rlp_bytes(struct eth_rlp *rlp, uint8_t **bytes, size_t *len) {
     if (eth_rlp_len(rlp, len, &base) <= 0)
       return -1;
 
-    if (base != 0x00 && base != 0x80)
-      return -1;
-
     buf = (uint8_t*)malloc(sizeof(uint8_t) * (*len));
     if (buf == NULL)
       return -1;
@@ -296,8 +290,11 @@ int eth_rlp_hex(struct eth_rlp *rlp, char **hex, int *len) {
     if (eth_rlp_bytes(rlp, &buf, &hsize) <= 0)
       return -1;
 
-    if ((hsize = (size_t)eth_hex_from_bytes(hex, buf, hsize)) <= 0)
+    if (hsize == 0) {
+      *hex = "0";
+    } else if ((hsize = (size_t)eth_hex_from_bytes(hex, buf, hsize)) <= 0) {
       return -1;
+    }
 
     if (len != NULL)
       *len = hsize;
@@ -326,7 +323,11 @@ int eth_rlp_uint8(struct eth_rlp *rlp, uint8_t *d) {
     if (eth_rlp_bytes(rlp, &bytes, &blen) <= 0)
       return -1;
 
-    *d = *bytes;
+    if (blen == 0) {
+      *d = 0;
+    } else {
+      *d = *bytes;
+    }
     free(bytes);
     return 1;
   }
@@ -352,8 +353,12 @@ int eth_rlp_uint16(struct eth_rlp *rlp, uint16_t *d) {
     if (eth_rlp_bytes(rlp, &bytes, &blen) <= 0)
       return -1;
 
-    *d = bytes[0] << 0x08;
-    *d += bytes[1];
+    if (blen == 0) {
+      *d = 0;
+    } else {
+      *d = bytes[0] << 0x08;
+      *d += bytes[1];
+    }
 
     free(bytes);
     return 1;
@@ -382,10 +387,14 @@ int eth_rlp_uint32(struct eth_rlp *rlp, uint32_t *d) {
     if (eth_rlp_bytes(rlp, &bytes, &blen) <= 0)
       return -1;
 
-    *d = bytes[0] << 0x18;
-    *d |= bytes[1] << 0x10;
-    *d |= bytes[2] << 0x08;
-    *d |= bytes[3];
+    if (blen == 0) {
+      *d = 0;
+    } else {
+      *d = bytes[0] << 0x18;
+      *d |= bytes[1] << 0x10;
+      *d |= bytes[2] << 0x08;
+      *d |= bytes[3];
+    }
     free(bytes);
     return 1;
   }
@@ -417,14 +426,18 @@ int eth_rlp_uint64(struct eth_rlp *rlp, uint64_t *d) {
     if (eth_rlp_bytes(rlp, &bytes, &blen) <= 0)
       return -1;
 
-    *d = (uint64_t) bytes[0] << 0x38;
-    *d |= (uint64_t)bytes[1] << 0x30;
-    *d |= (uint64_t)bytes[2] << 0x28;
-    *d |= (uint64_t)bytes[3] << 0x20;
-    *d |= bytes[4] << 0x18;
-    *d |= bytes[5] << 0x10;
-    *d |= bytes[6] << 0x8;
-    *d |= bytes[7];
+    if (blen == 0) {
+      *d = 0;
+    } else {
+      *d = (uint64_t) bytes[0] << 0x38;
+      *d |= (uint64_t)bytes[1] << 0x30;
+      *d |= (uint64_t)bytes[2] << 0x28;
+      *d |= (uint64_t)bytes[3] << 0x20;
+      *d |= bytes[4] << 0x18;
+      *d |= bytes[5] << 0x10;
+      *d |= bytes[6] << 0x8;
+      *d |= bytes[7];
+    }
     free(bytes);
     return 1;
   }

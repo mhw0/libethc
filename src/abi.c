@@ -136,8 +136,38 @@ int eth_abi_free(struct eth_abi *abi) {
   if (abi == NULL)
     return -1;
 
-  free(abi->cframe);
-  abi->cframe = NULL;
+  if (abi->cframe != NULL) {
+    struct ethc_abi_frame *frame = abi->cframe;
+    while (frame) {
+      int i;
+      struct ethc_abi_frame *curr = frame;
+
+      if (frame->buf != NULL) {
+        if (frame->buf->buf != NULL) {
+          free(frame->buf->buf);
+          frame->buf->buf = NULL;
+        }
+        free(frame->buf);
+        frame->buf = NULL;
+      }
+
+      for (i = 0; i < frame->dybuflen; i++) {
+        struct ethc_abi_buf *dybuf = frame->dybufs[i];
+        if (dybuf != NULL) {
+          if (dybuf->buf != NULL) {
+            free(dybuf->buf);
+            dybuf->buf = NULL;
+          }
+          free(dybuf);
+          dybuf = NULL;
+        }
+      }
+
+      frame = frame->pframe;
+      free(curr);
+      curr = NULL;
+    }
+  }
   return 1;
 }
 
