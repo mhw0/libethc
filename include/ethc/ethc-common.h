@@ -9,4 +9,12 @@
 #define ETHC_EXPORT
 #endif
 
+enum eth_op {
+  ETH_OK               = 0,
+  ETH_ERR_BUFFER_ALLOC = -1,
+  ETH_ERR_INVALID_ARGS = -2
+};
+
+#define ETH_OP enum eth_op
+
 #endif

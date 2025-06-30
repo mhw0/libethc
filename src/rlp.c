@@ -3,161 +3,203 @@
 #include <ethc/keccak256.h>
 #include <ethc/hex.h>
 #include <ethc/address.h>
+#include <stdio.h>
 
-int eth_rlp_frame_init(struct ethc_rlp_frame **dest, uint8_t *bytes, size_t len) {
-  struct ethc_rlp_frame *nframe;
-  uint8_t *buf;
-  size_t bufsize;
+/**
+ * Implementation details:
+ *
+ * RLP: [["a"], ["b", "c", "d", ["e", "f", ["g"]]]]
+ *
+ * Each opening square bracket represents one RLP buffer.
+ * When a new array is opened, a new RLP buffer is allocated
+ * with a pointer to its parent buffer. Then, it is set as the
+ * current buffer and further data encodings (like eth_rlp_uint8,
+ * eth_rlp_address etc.) are stored in this buffer:
+ *
+ * buffer[1]: <- parent is NULL
+ *   buffer[2]: <- parent is 1
+ *     "a"
+ *   buffer[3]: <- parent is 1
+ *     "b"
+ *     "c"
+ *     "d"
+ *     buffer[4]: <- parent is 3
+ *       "e"
+ *       "f"
+ *       buffer[5]: <- parent is 4
+ *         "g"
+ *
+ * Once bracket is closed, the content of the current buffer is merged
+ * into the parent buffer (with corresponding prefix), then flushed after
+ * which the parent buffer becomes the current buffer.
+ */
 
-  nframe = (struct ethc_rlp_frame*)malloc(sizeof(struct ethc_rlp_frame));
-  if (nframe == NULL)
-    return -1;
 
-  bufsize = bytes != NULL ? len : ETHC_RLP_FRAME_INITIAL_SIZE;
-  buf = (uint8_t*)malloc(bufsize);
-  if (buf == NULL) {
-    free(nframe);
-    return -1;
+ETH_OP ethc_rlp_buffer_init(struct ethc_rlp_buffer **dest, char *rawbuf, size_t len) {
+  struct ethc_rlp_buffer *rlpbuf;
+
+  rlpbuf = (struct ethc_rlp_buffer*)malloc(sizeof(struct ethc_rlp_buffer));
+  if (rlpbuf == NULL)
+    return ETH_ERR_BUFFER_ALLOC;
+
+  // if the raw buffer is not provided, allocate
+  // space to store rlp buffer data
+  if (rawbuf == NULL) {
+    len = ETHC_RLP_BUFFER_INIT_SIZE;
+    rawbuf = (char*)malloc(len);
+    if (rawbuf == NULL)
+      return ETH_ERR_BUFFER_ALLOC;
   }
 
-  nframe->buf = buf;
-  nframe->pframe = NULL;
-  nframe->offset = 0;
-  nframe->len = len;
+  rlpbuf->rawbuf = rawbuf;
+  rlpbuf->pbuf = NULL;
+  rlpbuf->offset = 0;
+  rlpbuf->len = len;
 
-  if (bytes != NULL)
-    memcpy(nframe->buf, bytes, len);
+  *dest = rlpbuf;
 
-  *dest = nframe;
-  return 1;
+  return ETH_OK;
 }
 
-int eth_rlp_init(struct eth_rlp *dest, int m) {
-  struct ethc_rlp_frame *nframe;
+ETH_OP eth_rlp_init(struct eth_rlp *dest, enum eth_rlp_mode m) {
+  struct ethc_rlp_buffer *cbuf;
+  ETH_OP op;
 
   if (dest == NULL)
-    return -1;
+    return ETH_ERR_INVALID_ARGS;
 
-  if (eth_rlp_frame_init(&nframe, NULL, 0) <= 0)
-    return -1;
+  if ((op = ethc_rlp_buffer_init(&cbuf, NULL, 0)) != ETH_OK)
+    return op;
 
-  dest->cframe = nframe;
+  dest->cbuf = cbuf;
   dest->m = m;
-  return 1;
+
+  return ETH_OK;
 }
 
-int eth_rlp_array(struct eth_rlp *rlp) {
-  struct ethc_rlp_frame *cframe, *nframe;
+ETH_OP eth_rlp_array(struct eth_rlp *rlp) {
+  struct ethc_rlp_buffer *pcbuf = NULL, *cbuf = NULL;
   uint8_t base;
+  ETH_OP op;
 
   if (rlp == NULL)
-    return -1;
-
-  cframe = rlp->cframe;
+    return ETH_ERR_INVALID_ARGS;
 
   if (rlp->m == ETH_RLP_ENCODE) {
-    if (eth_rlp_frame_init(&nframe, NULL, 0) <= 0)
-      return -1;
+    pcbuf = rlp->cbuf;
 
-    nframe->pframe = cframe;
-    rlp->cframe = nframe;
-    return 1;
+    if ((op = ethc_rlp_buffer_init(&cbuf, NULL, 0)) != ETH_OK)
+      return op;
+
+    rlp->cbuf = cbuf;
+    cbuf->pbuf = pcbuf;
+
+    return ETH_OK;
   }
 
   if (rlp->m == ETH_RLP_DECODE) {
-    if (eth_rlp_len(rlp, NULL, &base) <= 0)
-      return -1;
+    if ((op = eth_rlp_len(rlp, NULL, &base)) != ETH_OK)
+      return op;
 
-    return 1;
+    return ETH_OK;
   }
 
-  return -1;
+  return ETH_ERR_INVALID_ARGS;
 }
 
-int eth_rlp_array_end(struct eth_rlp *rlp) {
-  struct ethc_rlp_frame *cframe, *pframe;
+ETH_OP eth_rlp_array_end(struct eth_rlp *rlp) {
+  struct ethc_rlp_buffer *cbuf, *pcbuf;
   uint8_t base;
+  ETH_OP op;
 
   if (rlp == NULL)
-    return -1;
+    return ETH_ERR_INVALID_ARGS;
 
-  cframe = rlp->cframe;
-  pframe = cframe->pframe;
+  pcbuf = rlp->cbuf;
+  cbuf = rlp->cbuf->pbuf;
 
   if (rlp->m == ETH_RLP_ENCODE) {
-    base = cframe->len <= 0x37 ? 0xc0 : 0xf7;
+    // array is closing, parent buffer becomes the current buffer
+    rlp->cbuf = cbuf;
 
-    rlp->cframe = pframe;
+    // base for the length
+    base = pcbuf->offset <= 0x37 ? 0xc0 : 0xf7;
 
-    if (eth_rlp_len(rlp, &(cframe->len), &base) <= 0)
-      return -1;
+    // encode the length of the previous current buffer into the actual current buffer
+    if ((op = eth_rlp_len(rlp, &(pcbuf->offset), &base)) != ETH_OK)
+      return op;
 
-    memcpy(&(pframe->buf[pframe->offset]), cframe->buf, cframe->len);
-    pframe->offset += cframe->len;
-    pframe->len += cframe->len;
-    free(cframe->buf);
-    free(cframe);
-    return 1;
+    // copy contents of the previous current buffer into the current buffer
+    memcpy(&(cbuf->rawbuf[cbuf->offset]), pcbuf->rawbuf, pcbuf->offset);
+
+    // move the offset of the 
+    cbuf->offset += pcbuf->offset;
+
+    // free the previous current buffer
+    free(pcbuf->rawbuf);
+    free(pcbuf);
+
+    return ETH_OK;
   }
 
   if (rlp->m == ETH_RLP_DECODE)
-    return 1;
+    return ETH_OK;
 
-  return -1;
+  return ETH_ERR_INVALID_ARGS;
 }
 
-int eth_rlp_len(struct eth_rlp *rlp, size_t *len, uint8_t *base) {
-  struct ethc_rlp_frame *cframe;
+ETH_OP eth_rlp_len(struct eth_rlp *rlp, size_t *len, uint8_t *base) {
+  struct ethc_rlp_buffer *cbuf;
   uint8_t head, bbase, llen;
 
   if (rlp == NULL)
-    return -1;
+    return ETH_ERR_INVALID_ARGS;
 
-  cframe = rlp->cframe;
+  cbuf = rlp->cbuf;
 
   if (rlp->m == ETH_RLP_ENCODE) {
     if (len == NULL || base == NULL)
-      return -1;
+      return ETH_ERR_INVALID_ARGS;
 
     if (*len <= 0x37) {
-      cframe->buf[cframe->offset++] = *base + *len;
-      cframe->len++;
+      cbuf->rawbuf[cbuf->offset++] = *base + *len;
+      cbuf->len++;
     } else if (*len <= 0xFF) {
-      cframe->buf[cframe->offset++] = *base + 0x01;
-      cframe->buf[cframe->offset++] = *len;
-      cframe->len += 2;
+      cbuf->rawbuf[cbuf->offset++] = *base + 0x01;
+      cbuf->rawbuf[cbuf->offset++] = *len;
+      cbuf->len += 2;
     } else if (*len <= 0xFFFF) {
-      cframe->buf[cframe->offset++] = *base + 0x02;
-      cframe->buf[cframe->offset++] = (*len >> 0x08) & 0xFF;
-      cframe->buf[cframe->offset++] = *len & 0xFF;
-      cframe->len += 3;
+      cbuf->rawbuf[cbuf->offset++] = *base + 0x02;
+      cbuf->rawbuf[cbuf->offset++] = (*len >> 0x08) & 0xFF;
+      cbuf->rawbuf[cbuf->offset++] = *len & 0xFF;
+      cbuf->len += 3;
     } else if (*len <= 0xFFFFFFFF) {
-      cframe->buf[cframe->offset++] = *base + 0x04;
-      cframe->buf[cframe->offset++] = (*len >> 0x18) & 0xFF;
-      cframe->buf[cframe->offset++] = (*len >> 0x10) & 0xFF;
-      cframe->buf[cframe->offset++] = (*len >> 0x08) & 0xFF;
-      cframe->buf[cframe->offset++] = *len & 0xFF;
-      cframe->len += 5;
+      cbuf->rawbuf[cbuf->offset++] = *base + 0x04;
+      cbuf->rawbuf[cbuf->offset++] = (*len >> 0x18) & 0xFF;
+      cbuf->rawbuf[cbuf->offset++] = (*len >> 0x10) & 0xFF;
+      cbuf->rawbuf[cbuf->offset++] = (*len >> 0x08) & 0xFF;
+      cbuf->rawbuf[cbuf->offset++] = *len & 0xFF;
+      cbuf->len += 5;
     } else if (*len <= 0xFFFFFFFFFFFFFFFF) {
-      cframe->buf[cframe->offset++] = *base + 0x08;
-      cframe->buf[cframe->offset++] = (*len >> 0x38) & 0xFF;
-      cframe->buf[cframe->offset++] = (*len >> 0x30) & 0xFF;
-      cframe->buf[cframe->offset++] = (*len >> 0x28) & 0xFF;
-      cframe->buf[cframe->offset++] = (*len >> 0x20) & 0xFF;
-      cframe->buf[cframe->offset++] = (*len >> 0x18) & 0xFF;
-      cframe->buf[cframe->offset++] = (*len >> 0x10) & 0xFF;
-      cframe->buf[cframe->offset++] = (*len >> 0x08) & 0xFF;
-      cframe->buf[cframe->offset++] = *len & 0xFF;
-      cframe->len += 9;
+      cbuf->rawbuf[cbuf->offset++] = *base + 0x08;
+      cbuf->rawbuf[cbuf->offset++] = (*len >> 0x38) & 0xFF;
+      cbuf->rawbuf[cbuf->offset++] = (*len >> 0x30) & 0xFF;
+      cbuf->rawbuf[cbuf->offset++] = (*len >> 0x28) & 0xFF;
+      cbuf->rawbuf[cbuf->offset++] = (*len >> 0x20) & 0xFF;
+      cbuf->rawbuf[cbuf->offset++] = (*len >> 0x18) & 0xFF;
+      cbuf->rawbuf[cbuf->offset++] = (*len >> 0x10) & 0xFF;
+      cbuf->rawbuf[cbuf->offset++] = (*len >> 0x08) & 0xFF;
+      cbuf->rawbuf[cbuf->offset++] = *len & 0xFF;
+      cbuf->len += 9;
     } else {
-      return -1;
+      return ETH_ERR_INVALID_ARGS;
     }
 
-    return 1;
+    return ETH_OK;
   }
 
   if (rlp->m == ETH_RLP_DECODE) {
-    head = cframe->buf[cframe->offset];
+    head = cbuf->rawbuf[cbuf->offset];
 
     if (head <= 0x7F) {
       llen = 1;
@@ -165,36 +207,36 @@ int eth_rlp_len(struct eth_rlp *rlp, size_t *len, uint8_t *base) {
     } else if (head <= 0xB7 || (head >= 0xC0 && head <= 0xF7)) {
       bbase = head <= 0xB7 ? 0x80 : 0xC0;
       llen = head - bbase;
-      cframe->offset++;
+      cbuf->offset++;
     } else {
       bbase = head <= 0xBF ? 0xB8 : 0xF8;
       llen = head - bbase;
 
       if (llen <= 1) {
-        cframe->offset += llen + 1;
-        llen = cframe->buf[cframe->offset++];
+        cbuf->offset += llen + 1;
+        llen = cbuf->rawbuf[cbuf->offset++];
       } else if (llen <= 2) {
-        cframe->offset += llen + 2;
-        llen = cframe->buf[cframe->offset++] << 0x04;
-        llen |= llen | cframe->buf[cframe->offset++];
+        cbuf->offset += llen + 2;
+        llen = cbuf->rawbuf[cbuf->offset++] << 0x04;
+        llen |= llen | cbuf->rawbuf[cbuf->offset++];
       } else if (*len <= 4) {
-        cframe->offset = llen + 4;
-        llen = cframe->buf[cframe->offset++] << 0x18;
-        llen |= cframe->buf[cframe->offset++] << 0x10;
-        llen |= cframe->buf[cframe->offset++] << 0x08;
-        llen |= cframe->buf[cframe->offset++];
+        cbuf->offset = llen + 4;
+        llen = cbuf->rawbuf[cbuf->offset++] << 0x18;
+        llen |= cbuf->rawbuf[cbuf->offset++] << 0x10;
+        llen |= cbuf->rawbuf[cbuf->offset++] << 0x08;
+        llen |= cbuf->rawbuf[cbuf->offset++];
       } else if (*len <= 8) {
-        cframe->offset += 8;
-        llen = (size_t)cframe->buf[cframe->offset++] << 0x38;
-        llen |= (size_t)cframe->buf[cframe->offset++] << 0x30;
-        llen |= (size_t)cframe->buf[cframe->offset++] << 0x28;
-        llen |= (size_t)cframe->buf[cframe->offset++] << 0x20;
-        llen |= cframe->buf[cframe->offset++] << 0x18;
-        llen |= cframe->buf[cframe->offset++] << 0x10;
-        llen |= cframe->buf[cframe->offset++] << 0x08;
-        llen |= cframe->buf[cframe->offset++];
+        cbuf->offset += 8;
+        llen = (size_t)cbuf->rawbuf[cbuf->offset++] << 0x38;
+        llen |= (size_t)cbuf->rawbuf[cbuf->offset++] << 0x30;
+        llen |= (size_t)cbuf->rawbuf[cbuf->offset++] << 0x28;
+        llen |= (size_t)cbuf->rawbuf[cbuf->offset++] << 0x20;
+        llen |= cbuf->rawbuf[cbuf->offset++] << 0x18;
+        llen |= cbuf->rawbuf[cbuf->offset++] << 0x10;
+        llen |= cbuf->rawbuf[cbuf->offset++] << 0x08;
+        llen |= cbuf->rawbuf[cbuf->offset++];
       } else {
-        return -1;
+        return ETH_ERR_INVALID_ARGS;
       }
     }
 
@@ -204,114 +246,120 @@ int eth_rlp_len(struct eth_rlp *rlp, size_t *len, uint8_t *base) {
     if (base != NULL)
       *base = bbase;
 
-    return 1;
+    return ETH_OK;
   }
 
-  return -1;
+  return ETH_ERR_INVALID_ARGS;
 }
 
-int eth_rlp_bytes(struct eth_rlp *rlp, uint8_t **bytes, size_t *len) {
-  struct ethc_rlp_frame *cframe;
+ETH_OP eth_rlp_bytes(struct eth_rlp *rlp, uint8_t **bytes, size_t *len) {
+  ETH_OP op;
+  struct ethc_rlp_buffer *cbuf;
   uint8_t base, *buf;
 
   if (rlp == NULL || bytes == NULL)
-    return -1;
+    return ETH_ERR_INVALID_ARGS;
 
-  cframe = rlp->cframe;
+  cbuf = rlp->cbuf;
 
   if (rlp->m == ETH_RLP_ENCODE) {
     if (*len == 1 && **bytes <= 0x7F) {
-      /* single 0 value is empty bytes (0x) */
       if (**bytes == 0x00)
-        cframe->buf[cframe->offset++] = 0x80;
+        cbuf->rawbuf[cbuf->offset++] = 0x80;
       else
-        cframe->buf[cframe->offset++] = **bytes;
+        cbuf->rawbuf[cbuf->offset++] = **bytes;
 
-      cframe->len++;
-      return 1;
+      cbuf->len++;
+      return ETH_OK;
     }
 
     base = *len <= 0x37 ? 0x80 : 0xB7;
-    if (eth_rlp_len(rlp, len, &base) <= 0)
-      return -1;
+    if ((op = eth_rlp_len(rlp, len, &base)) != ETH_OK)
+      return op;
 
-    memcpy(&(cframe->buf[cframe->offset]), *bytes, *len);
-    cframe->offset += *len;
-    cframe->len += *len;
-    return 1;
+    memcpy(&(cbuf->rawbuf[cbuf->offset]), *bytes, *len);
+    cbuf->offset += *len;
+    cbuf->len += *len;
+
+    return ETH_OK;
   }
 
   if (rlp->m == ETH_RLP_DECODE) {
-    if (eth_rlp_len(rlp, len, &base) <= 0)
-      return -1;
+    if ((op = eth_rlp_len(rlp, len, &base)) != ETH_OK)
+      return op;
 
     buf = (uint8_t*)malloc(sizeof(uint8_t) * (*len));
     if (buf == NULL)
-      return -1;
+      return ETH_ERR_BUFFER_ALLOC;
 
-    memcpy(buf, &(cframe->buf[cframe->offset]), *len);
-    cframe->offset += *len;
-    cframe->len += *len;
+    memcpy(buf, &(cbuf->rawbuf[cbuf->offset]), *len);
+    cbuf->offset += *len;
+    cbuf->len += *len;
     *bytes = buf;
-    return 1;
+
+    return ETH_OK;
   }
 
-  return -1;
+  return ETH_ERR_INVALID_ARGS;
 }
 
-int eth_rlp_hex(struct eth_rlp *rlp, char **hex, int *len) {
+ETH_OP eth_rlp_hex(struct eth_rlp *rlp, char **hex, int *len) {
   uint8_t *buf;
   size_t hsize;
   int hlen;
+  ETH_OP op;
 
   if (rlp == NULL || hex == NULL)
-    return -1;
+    return ETH_ERR_INVALID_ARGS;
 
   if (rlp->m == ETH_RLP_ENCODE) {
     /* TODO: not safe */
     hlen = len == NULL ? (int)strlen(*hex) : *len;
 
     if (eth_is_hex(*hex, hlen) <= 0)
-      return -1;
+      return ETH_ERR_INVALID_ARGS;
 
     if ((hsize = eth_hex_to_bytes(&buf, *hex, hlen)) <= 0)
-      return -1;
+      return ETH_ERR_INVALID_ARGS;
 
-    if (eth_rlp_bytes(rlp, &buf, &hsize) <= 0) {
+    if ((op = eth_rlp_bytes(rlp, &buf, &hsize)) != ETH_OK) {
       free(buf);
-      return -1;
+      return ETH_ERR_INVALID_ARGS;
     }
 
     free(buf);
-    return 1;
+
+    return ETH_OK;
   }
 
   if (rlp->m == ETH_RLP_DECODE) {
-    if (eth_rlp_bytes(rlp, &buf, &hsize) <= 0)
-      return -1;
+    if ((op = eth_rlp_bytes(rlp, &buf, &hsize)) != ETH_OK)
+      return op;
 
     if (hsize == 0) {
       *hex = "0";
     } else if ((hsize = (size_t)eth_hex_from_bytes(hex, buf, hsize)) <= 0) {
-      return -1;
+      return ETH_ERR_INVALID_ARGS;
     }
 
     if (len != NULL)
       *len = hsize;
 
     free(buf);
-    return 1;
+
+    return ETH_OK;
   }
 
-  return -1;
+  return ETH_ERR_INVALID_ARGS;
 }
 
-int eth_rlp_uint8(struct eth_rlp *rlp, uint8_t *d) {
+ETH_OP eth_rlp_uint8(struct eth_rlp *rlp, uint8_t *d) {
+  ETH_OP op;
   uint8_t data[1], *bytes = data;
   size_t blen = 0;
 
   if (rlp == NULL || d == NULL)
-    return -1;
+    return ETH_ERR_INVALID_ARGS;
 
   if (rlp->m == ETH_RLP_ENCODE) {
     bytes[blen++] = *d;
@@ -320,27 +368,30 @@ int eth_rlp_uint8(struct eth_rlp *rlp, uint8_t *d) {
   }
 
   if (rlp->m == ETH_RLP_DECODE) {
-    if (eth_rlp_bytes(rlp, &bytes, &blen) <= 0)
-      return -1;
+    if ((op = eth_rlp_bytes(rlp, &bytes, &blen)) != ETH_OK)
+      return op;
 
     if (blen == 0) {
       *d = 0;
     } else {
       *d = *bytes;
     }
+
     free(bytes);
-    return 1;
+
+    return ETH_OK;
   }
 
-  return -1;
+  return ETH_ERR_INVALID_ARGS;
 }
 
-int eth_rlp_uint16(struct eth_rlp *rlp, uint16_t *d) {
+ETH_OP eth_rlp_uint16(struct eth_rlp *rlp, uint16_t *d) {
+  ETH_OP op;
   uint8_t data[2], *bytes = data;
   size_t blen = 0;
 
   if (rlp == NULL || d == NULL)
-    return -1;
+    return ETH_ERR_INVALID_ARGS;
 
   if (rlp->m == ETH_RLP_ENCODE) {
     bytes[blen++] = (*d >> 0x08) & 0xFF;
@@ -350,8 +401,8 @@ int eth_rlp_uint16(struct eth_rlp *rlp, uint16_t *d) {
   }
 
   if (rlp->m == ETH_RLP_DECODE) {
-    if (eth_rlp_bytes(rlp, &bytes, &blen) <= 0)
-      return -1;
+    if ((op = eth_rlp_bytes(rlp, &bytes, &blen)) != ETH_OK)
+      return op;
 
     if (blen == 0) {
       *d = 0;
@@ -361,18 +412,20 @@ int eth_rlp_uint16(struct eth_rlp *rlp, uint16_t *d) {
     }
 
     free(bytes);
-    return 1;
+
+    return ETH_OK;
   }
 
-  return -1;
+  return ETH_ERR_INVALID_ARGS;
 }
 
-int eth_rlp_uint32(struct eth_rlp *rlp, uint32_t *d) {
+ETH_OP eth_rlp_uint32(struct eth_rlp *rlp, uint32_t *d) {
+  ETH_OP op;
   uint8_t data[4], *bytes = data;
   size_t blen = 0;
 
   if (rlp == NULL || d == NULL)
-    return -1;
+    return ETH_ERR_INVALID_ARGS;
 
   if (rlp->m == ETH_RLP_ENCODE) {
     bytes[blen++] = (*d >> 0x18) & 0xFF;
@@ -384,8 +437,8 @@ int eth_rlp_uint32(struct eth_rlp *rlp, uint32_t *d) {
   }
 
   if (rlp->m == ETH_RLP_DECODE) {
-    if (eth_rlp_bytes(rlp, &bytes, &blen) <= 0)
-      return -1;
+    if ((op = eth_rlp_bytes(rlp, &bytes, &blen)) != ETH_OK)
+      return op;
 
     if (blen == 0) {
       *d = 0;
@@ -395,19 +448,22 @@ int eth_rlp_uint32(struct eth_rlp *rlp, uint32_t *d) {
       *d |= bytes[2] << 0x08;
       *d |= bytes[3];
     }
+
     free(bytes);
-    return 1;
+
+    return ETH_OK;
   }
 
-  return -1;
+  return ETH_ERR_INVALID_ARGS;
 }
 
-int eth_rlp_uint64(struct eth_rlp *rlp, uint64_t *d) {
+ETH_OP eth_rlp_uint64(struct eth_rlp *rlp, uint64_t *d) {
+  ETH_OP op;
   uint8_t data[8], *bytes = data;
   size_t blen = 0;
 
   if (rlp == NULL || d == NULL)
-    return -1;
+    return ETH_ERR_INVALID_ARGS;
 
   if (rlp->m == ETH_RLP_ENCODE) {
     bytes[blen++] = (*d >> 0x38) & 0xFF;
@@ -423,8 +479,8 @@ int eth_rlp_uint64(struct eth_rlp *rlp, uint64_t *d) {
   }
 
   if (rlp->m == ETH_RLP_DECODE) {
-    if (eth_rlp_bytes(rlp, &bytes, &blen) <= 0)
-      return -1;
+    if ((op = eth_rlp_bytes(rlp, &bytes, &blen)) != ETH_OK)
+      return op;
 
     if (blen == 0) {
       *d = 0;
@@ -438,14 +494,17 @@ int eth_rlp_uint64(struct eth_rlp *rlp, uint64_t *d) {
       *d |= bytes[6] << 0x8;
       *d |= bytes[7];
     }
+
     free(bytes);
-    return 1;
+
+    return ETH_OK;
   }
 
-  return -1;
+  return ETH_ERR_INVALID_ARGS;
 }
 
-int eth_rlp_uint(struct eth_rlp *rlp, uint64_t *d) {
+ETH_OP eth_rlp_uint(struct eth_rlp *rlp, uint64_t *d) {
+  ETH_OP op;
   size_t offset, len;
   uint8_t base;
 
@@ -460,16 +519,16 @@ int eth_rlp_uint(struct eth_rlp *rlp, uint64_t *d) {
       return eth_rlp_uint64(rlp, d);
     }
 
-    return -1;
+    return ETH_ERR_INVALID_ARGS;
   }
 
   if (rlp->m == ETH_RLP_DECODE) {
-    offset = rlp->cframe->offset;
+    offset = rlp->cbuf->offset;
 
-    if (eth_rlp_len(rlp, &len, &base) <= 0)
-      return -1;
+    if ((op = eth_rlp_len(rlp, &len, &base)) != ETH_OK)
+      return op;
 
-    rlp->cframe->offset = offset;
+    rlp->cbuf->offset = offset;
 
     if (len <= 1)
       return eth_rlp_uint8(rlp, (uint8_t*)d);
@@ -480,21 +539,21 @@ int eth_rlp_uint(struct eth_rlp *rlp, uint64_t *d) {
     else if (len <= 8)
       return eth_rlp_uint64(rlp, (uint64_t*)d);
 
-    return -1;
+    return ETH_ERR_INVALID_ARGS;
   }
 
-  return -1;
+  return ETH_ERR_INVALID_ARGS;
 }
 
-int eth_rlp_address(struct eth_rlp *rlp, char **addr) {
+ETH_OP eth_rlp_address(struct eth_rlp *rlp, char **addr) {
+  ETH_OP op;
   int hexlen;
 
   if (rlp == NULL || addr == NULL)
-    return -1;
+    return ETH_ERR_INVALID_ARGS;
 
   if (rlp->m == ETH_RLP_ENCODE) {
-    if (*addr == NULL || strlen(*addr) == 0) {
-      /* Handle empty address, support deploy contract. */
+    if (strlen(*addr) == 0) {
       uint8_t empty_address = 0x00;
       uint8_t *empty_address_ptr = &empty_address;
       size_t size = 1;
@@ -502,110 +561,113 @@ int eth_rlp_address(struct eth_rlp *rlp, char **addr) {
     }
 
     if (eth_is_address(*addr) <= 0)
-      return -1;
+      return ETH_ERR_INVALID_ARGS;
 
     if (strncmp(*addr, "0x", 2) == 0)
       *addr += 2;
 
     hexlen = 40;
-    if (eth_rlp_hex(rlp, addr, &hexlen) <= 0)
-      return -1;
+    if ((op = eth_rlp_hex(rlp, addr, &hexlen)) != ETH_OK)
+      return op;
 
-    return 1;
+    return ETH_OK;
   }
 
   if (rlp->m == ETH_RLP_DECODE) {
     uint8_t *buf;
     size_t hsize;
 
-    if (eth_rlp_bytes(rlp, &buf, &hsize) <= 0)
-      return -1;
+    if ((op = eth_rlp_bytes(rlp, &buf, &hsize)) != ETH_OK)
+      return op;
 
-    if (hsize == 1 && buf[0] == 0x0) {
-      /* Handle empty address */
+    if (hsize == 0 && buf[0] == 0x0) {
       *addr = strdup("");
       free(buf);
-      return 1;
+      return ETH_OK;
     }
 
     if ((hsize = (size_t)eth_hex_from_bytes(addr, buf, hsize)) <= 0) {
       free(buf);
-      return -1;
+      return ETH_ERR_INVALID_ARGS;
     }
 
     free(buf);
-    return 1;
+
+    return ETH_OK;
   }
 
-  return -1;
+  return ETH_ERR_INVALID_ARGS;
 }
 
-int eth_rlp_to_hex(char **dest, struct eth_rlp *src) {
-  struct ethc_rlp_frame *cframe;
+ETH_OP eth_rlp_to_hex(char **dest, struct eth_rlp *src) {
+  struct ethc_rlp_buffer *cbuf;
   char *buf;
   int hsize;
 
   if (dest == NULL || src == NULL)
-    return -1;
+    return ETH_ERR_INVALID_ARGS;
 
-  cframe = src->cframe;
+  cbuf = src->cbuf;
 
-  hsize = eth_hex_from_bytes(&buf, cframe->buf, cframe->len);
+  hsize = eth_hex_from_bytes(&buf, (uint8_t*)cbuf->rawbuf, cbuf->offset);
   if (hsize <= 0)
-    return -1;
+    return ETH_ERR_INVALID_ARGS;
 
   *dest = buf;
-  return hsize;
+
+  return ETH_OK;
 }
 
-int eth_rlp_to_bytes(uint8_t **bytes, size_t *len, struct eth_rlp *src) {
-  struct ethc_rlp_frame *cframe;
+ETH_OP eth_rlp_to_bytes(uint8_t **bytes, size_t *len, struct eth_rlp *src) {
+  struct ethc_rlp_buffer *cbuf;
   uint8_t *buf;
 
   if (bytes == NULL || len == NULL || src == NULL)
-    return -1;
+    return ETH_ERR_INVALID_ARGS;
 
-  cframe = src->cframe;
+  cbuf = src->cbuf;
 
-  buf = (uint8_t*)malloc(cframe->len);
+  buf = (uint8_t*)malloc(cbuf->len);
   if (buf == NULL)
-    return -1;
+    return ETH_ERR_BUFFER_ALLOC;
 
-  memcpy(buf, cframe->buf, cframe->len);
+  memcpy(buf, cbuf->rawbuf, cbuf->offset);
 
   *bytes = buf;
-  *len = cframe->len;
-  return 1;
+  *len = cbuf->offset;
+
+  return ETH_OK;
 }
 
-int eth_rlp_from_hex(struct eth_rlp *dest, char *hex, int len) {
-  struct ethc_rlp_frame *nframe;
-  uint8_t *buf, sbuf;
+ETH_OP eth_rlp_from_hex(struct eth_rlp *dest, char *hex, int len) {
+  ETH_OP op;
+  struct ethc_rlp_buffer *nbuf;
+  char *buf;
+  int buflen;
 
   if (dest == NULL || hex == NULL)
-    return -1;
+    return ETH_ERR_INVALID_ARGS;
 
   if (len < 0)
     len = (int)strlen(hex); /* TODO: NOT SAFE */
 
-  if ((sbuf = eth_hex_to_bytes(&buf, hex, len)) <= 0)
-    return -1;
+  if ((buflen = eth_hex_to_bytes((uint8_t**)&buf, hex, len)) <= 0)
+    return ETH_ERR_INVALID_ARGS;
 
-  if (eth_rlp_frame_init(&nframe, buf, sbuf) <= 0)
-    return -1;
+  if ((op = ethc_rlp_buffer_init(&nbuf, buf, buflen)) != ETH_OK)
+    return op;
 
-  dest->cframe = nframe;
+  dest->cbuf = nbuf;
   dest->m = ETH_RLP_DECODE;
-  return 1;
+
+  return ETH_OK;
 }
 
 int eth_rlp_free(struct eth_rlp *dest) {
-  struct ethc_rlp_frame *cframe;
   if (dest == NULL)
-    return -1;
+    return ETH_ERR_INVALID_ARGS;
 
-  cframe = dest->cframe;
+  free(dest->cbuf->rawbuf);
 
-  free(cframe->buf);
-  return 1;
+  return ETH_OK;
 }

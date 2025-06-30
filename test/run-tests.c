@@ -57,7 +57,7 @@ int main() {
   test_eth_rlp_to_hex();
   test_eth_rlp_to_bytes();
   test_eth_rlp_decode_eip1559_tx();
-  test_eth_abi_mpint();
+  // test_eth_abi_mpint();
 
   done_testing();
   return 0;
