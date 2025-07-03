@@ -15,6 +15,7 @@ libethc documentation
   ecdsa
   unit
   keccak
+  ens
 
   examples
 

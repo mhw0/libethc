@@ -59,3 +59,5 @@ void test_eth_rlp_hex(void);
 void test_eth_rlp_to_hex(void);
 void test_eth_rlp_to_bytes(void);
 void test_eth_rlp_decode_eip1559_tx(void);
+
+void test_eth_ens_namehash(void);

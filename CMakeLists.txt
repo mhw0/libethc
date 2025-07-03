@@ -16,6 +16,7 @@ SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake")
 
 SET(ETHC_SOURCE_FILES
     src/abi.c
+    src/ens.c
     src/account.c
     src/address.c
     src/ecdsa.c

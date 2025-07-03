@@ -10,7 +10,9 @@ SET(TEST_SOURCE_FILES
     test-eth-keccak256.c
     test-eth-hex.c
     test-eth-rlp.c
-    test-eth-address.c)
+    test-eth-address.c
+    test-eth-ens.c
+  )
 
 ADD_TEST(NAME ${PROJECT_NAME} COMMAND ${PROJECT_NAME})
 ADD_EXECUTABLE(${PROJECT_NAME} ${TEST_SOURCE_FILES})
