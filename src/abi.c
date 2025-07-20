@@ -1,804 +1,750 @@
-#include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <ethc/abi.h>
 #include <ethc/address.h>
 #include <ethc/hex.h>
 #include <ethc/keccak256.h>
 
-#define ethc_abi_buf_pr64(dest, framebuf, offset) \
-  dest = (uint64_t)framebuf->buf[offset + 24] << 0x38; \
-  dest |= (uint64_t)framebuf->buf[offset + 25] << 0x30; \
-  dest |= (uint64_t)framebuf->buf[offset + 26] << 0x28; \
-  dest |= (uint64_t)framebuf->buf[offset + 27] << 0x20; \
-  dest |= (uint64_t)framebuf->buf[offset + 28] << 0x18; \
-  dest |= framebuf->buf[offset + 29] << 0x10; \
-  dest |= framebuf->buf[offset + 30] << 0x08; \
-  dest |= framebuf->buf[offset + 31];
+#define ethc_abi_buffer_padded_read64(dest, buffer, offset) \
+  dest = (uint64_t)buffer->rawbuf[offset + 24] << 0x38; \
+  dest |= (uint64_t)buffer->rawbuf[offset + 25] << 0x30; \
+  dest |= (uint64_t)buffer->rawbuf[offset + 26] << 0x28; \
+  dest |= (uint64_t)buffer->rawbuf[offset + 27] << 0x20; \
+  dest |= (uint64_t)buffer->rawbuf[offset + 28] << 0x18; \
+  dest |= buffer->rawbuf[offset + 29] << 0x10; \
+  dest |= buffer->rawbuf[offset + 30] << 0x08; \
+  dest |= buffer->rawbuf[offset + 31];
 
-#define ethc_abi_buf_pr32(dest, framebuf, offset) \
-  dest = (uint64_t)framebuf->buf[offset + 28] << 0x18; \
-  dest |= framebuf->buf[offset + 29] << 0x10; \
-  dest |= framebuf->buf[offset + 30] << 0x08; \
-  dest |= framebuf->buf[offset + 31];
+#define ethc_abi_buffer_padded_read32(dest, buffer, offset) \
+  dest = (uint64_t)buffer->rawbuf[offset + 28] << 0x18; \
+  dest |= buffer->rawbuf[offset + 29] << 0x10; \
+  dest |= buffer->rawbuf[offset + 30] << 0x08; \
+  dest |= buffer->rawbuf[offset + 31];
 
-#define ethc_abi_buf_pr16(dest, framebuf, offset) \
-  dest = framebuf->buf[offset + 30] << 0x08; \
-  dest |= framebuf->buf[offset + 31];
+#define ethc_abi_buffer_padded_read16(dest, buffer, offset) \
+  dest = buffer->rawbuf[offset + 30] << 0x08; \
+  dest |= buffer->rawbuf[offset + 31];
 
-#define ethc_abi_buf_pr8(dest, framebuf, offset) \
-  dest = framebuf->buf[offset + 31];
+#define ethc_abi_buffer_padded_read8(dest, buffer, offset) \
+  dest = buffer->rawbuf[offset + 31];
 
-#define ethc_abi_buf_pw64(framebuf, src, offset) \
-  framebuf->buf[offset + 24] = (src >> 0x38) & 0xFF; \
-  framebuf->buf[offset + 25] = (src >> 0x30) & 0xFF; \
-  framebuf->buf[offset + 26] = (src >> 0x28) & 0xFF; \
-  framebuf->buf[offset + 27] = (src >> 0x20) & 0xFF; \
-  framebuf->buf[offset + 28] = (src >> 0x18) & 0xFF; \
-  framebuf->buf[offset + 29] = (src >> 0x10) & 0xFF; \
-  framebuf->buf[offset + 30] = (src >> 0x08) & 0xFF; \
-  framebuf->buf[offset + 31] = (src & 0xFF);
+#define ethc_abi_buffer_padded_write64(buf, src, offset) \
+  buf->rawbuf[offset + 24] = (src >> 0x38) & 0xFF; \
+  buf->rawbuf[offset + 25] = (src >> 0x30) & 0xFF; \
+  buf->rawbuf[offset + 26] = (src >> 0x28) & 0xFF; \
+  buf->rawbuf[offset + 27] = (src >> 0x20) & 0xFF; \
+  buf->rawbuf[offset + 28] = (src >> 0x18) & 0xFF; \
+  buf->rawbuf[offset + 29] = (src >> 0x10) & 0xFF; \
+  buf->rawbuf[offset + 30] = (src >> 0x08) & 0xFF; \
+  buf->rawbuf[offset + 31] = (src & 0xFF);
 
-#define ethc_abi_buf_pw32(framebuf, src, offset) \
-  framebuf->buf[offset + 28] = (src >> 0x18) & 0xFF; \
-  framebuf->buf[offset + 29] = (src >> 0x10) & 0xFF; \
-  framebuf->buf[offset + 30] = (src >> 0x08) & 0xFF; \
-  framebuf->buf[offset + 31] = (src & 0xFF);
+#define ethc_abi_buffer_padded_write32(buf, src, offset) \
+  buf->rawbuf[offset + 28] = (src >> 0x18) & 0xFF; \
+  buf->rawbuf[offset + 29] = (src >> 0x10) & 0xFF; \
+  buf->rawbuf[offset + 30] = (src >> 0x08) & 0xFF; \
+  buf->rawbuf[offset + 31] = (src & 0xFF);
 
-#define ethc_abi_buf_pw16(framebuf, src, offset) \
-  framebuf->buf[offset + 30] = (src >> 0x08) & 0xFF; \
-  framebuf->buf[offset + 31] = (src & 0xFF);
+#define ethc_abi_buffer_padded_write16(buffer, src, offset) \
+  buffer->rawbuf[offset + 30] = (src >> 0x08) & 0xFF; \
+  buffer->rawbuf[offset + 31] = (src & 0xFF);
 
-#define ethc_abi_buf_pw8(framebuf, src, offset) \
-  framebuf->buf[offset + 31] = (src & 0xFF);
+#define ethc_abi_buffer_padded_write8(buf, src, offset) \
+  buf->rawbuf[offset + 31] = (src & 0xFF);
 
-int ethc_abi_buf_init(struct ethc_abi_buf **dest, size_t size) {
-  struct ethc_abi_buf *bbuf;
-  uint8_t *buf;
-
-  bbuf = (struct ethc_abi_buf*)malloc(sizeof(struct ethc_abi_buf));
-  if (bbuf == NULL)
-    return -1;
-
-  buf = calloc(size, sizeof(uint8_t));
-  if (buf == NULL) {
-    free(bbuf);
-    return -1;
-  }
-  
-  bbuf->buf = buf;
-  bbuf->len = 0;
-  bbuf->offset = 0;
-  *dest = bbuf;
-  return 1;
+void ethc_abi_type_stack_push(struct ethc_abi_dynamic_type_stack *stack, struct ethc_abi_dynamic_type *buf) {
+  stack->stack[stack->head++] = buf;
 }
 
-int ethc_abi_frame_init(struct ethc_abi_frame **frame) {
-  struct ethc_abi_frame *nframe;
-  struct ethc_abi_buf *fbuf;
-
-  nframe = (struct ethc_abi_frame*)malloc(sizeof(struct ethc_abi_frame));
-  if (nframe == NULL)
-    return -1;
-
-  if (ethc_abi_buf_init(&fbuf, ETHC_ABI_BUFFER_INITIAL_SIZE) < 0)
-    return -1;
-
-  nframe->buf = fbuf;
-  nframe->pframe = NULL;
-  nframe->dybuflen = 0;
-  nframe->len = 0;
-  *frame = nframe;
-  return 1;
+void ethc_abi_type_stack_peek(struct ethc_abi_dynamic_type **dest, struct ethc_abi_dynamic_type_stack *stack) {
+  *dest = stack->stack[stack->head - 1];
 }
 
-int ethc_abi_frame_backpatch(struct ethc_abi_frame *frame) {
-  struct ethc_abi_buf *framebuf, *dybuf;
-  uint64_t dyoffset, i;
-
-  framebuf = frame->buf;
-
-  for (i = 0; i < frame->dybuflen; i++) {
-    dybuf = frame->dybufs[i];
-
-    dyoffset = frame->pframe == NULL
-      ? framebuf->offset
-      : framebuf->offset - ETH_ABI_WORD_SIZE;
-
-    /* backpatch the offset for the dynamic buffer (can up to 2**64) */
-    ethc_abi_buf_pw64(framebuf, dyoffset, dybuf->doffset);
-
-    memcpy(&(framebuf->buf[framebuf->offset]), dybuf->buf, dybuf->len);
-    framebuf->len += dybuf->len;
-    framebuf->offset += dybuf->len;
-
-    free(dybuf);
-  }
-
-  frame->dybuflen = 0;
-  return 1;
+void ethc_abi_type_stack_pop(struct ethc_abi_dynamic_type **dest, struct ethc_abi_dynamic_type_stack *stack) {
+  *dest = stack->stack[--stack->head];
 }
 
-int eth_abi_init(struct eth_abi *abi, int m) {
-  struct ethc_abi_frame *nframe;
+void ethc_abi_buffer_alloc(struct ethc_abi_dynamic_type **dest, struct eth_abi *abi) {
+  *dest = &(abi->typepool[abi->head++]);
+}
+
+ETH_OP eth_abi_init(struct eth_abi *abi, enum eth_abi_mode m) {
+  struct ethc_abi_dynamic_type *ntype;
 
   if (abi == NULL)
-    return -1;
-
-  if (ethc_abi_frame_init(&nframe) < 0)
-    return -1;
+    return ETH_ERR_INVALID_ARGS;
 
   abi->m = m;
-  abi->cframe = nframe;
-  return 1;
+
+  ethc_abi_buffer_alloc(&ntype, abi);
+  ethc_abi_type_stack_push(&abi->stack, ntype);
+
+  return ETH_OK;
 }
 
-int eth_abi_free(struct eth_abi *abi) {
-  if (abi == NULL)
-    return -1;
+ETH_OP eth_abi_array(struct eth_abi *abi, size_t *len) {
+  struct ethc_abi_dynamic_type *ctype = NULL, *ntype = NULL;
+  size_t typeoffset = 0, typelen = 0, nsize = 0;
 
-  if (abi->cframe != NULL) {
-    struct ethc_abi_frame *frame = abi->cframe;
-    while (frame) {
-      int i;
-      struct ethc_abi_frame *curr = frame;
-
-      if (frame->buf != NULL) {
-        if (frame->buf->buf != NULL) {
-          free(frame->buf->buf);
-          frame->buf->buf = NULL;
-        }
-        free(frame->buf);
-        frame->buf = NULL;
-      }
-
-      for (i = 0; i < frame->dybuflen; i++) {
-        struct ethc_abi_buf *dybuf = frame->dybufs[i];
-        if (dybuf != NULL) {
-          if (dybuf->buf != NULL) {
-            free(dybuf->buf);
-            dybuf->buf = NULL;
-          }
-          free(dybuf);
-          dybuf = NULL;
-        }
-      }
-
-      frame = frame->pframe;
-      free(curr);
-      curr = NULL;
-    }
-  }
-  return 1;
-}
-
-int eth_abi_array(struct eth_abi *abi, uint64_t *len) {
-  struct ethc_abi_frame *cframe, *nframe;
-  struct ethc_abi_buf *cframebuf, *nframebuf;
-  uint64_t dyoffset, framelen;
+  (void)len;
 
   if (abi == NULL)
-    return -1;
+    return ETH_ERR_INVALID_ARGS;
 
-  cframe = abi->cframe;
-  cframebuf = cframe->buf;
+  ethc_abi_type_stack_peek(&ctype, &abi->stack);
 
   if (abi->m == ETH_ABI_ENCODE) {
-    if (ethc_abi_frame_init(&nframe) < 0)
-      return -1;
+    // allocate buffer from the pool
+    ethc_abi_buffer_alloc(&ntype, abi);
 
-    nframebuf = nframe->buf;
-    nframebuf->doffset = cframebuf->offset;
+    // push the allocated buffer to "nested stack"
+    ethc_abi_type_stack_push(&abi->stack, ntype);
 
-    /* write offset */
-    memset(cframebuf->buf + cframebuf->offset, 0, ETH_ABI_WORD_SIZE);
-    cframebuf->len += ETH_ABI_WORD_SIZE;
-    cframebuf->offset += ETH_ABI_WORD_SIZE;
+    // push the array to types list
+    abi->types[abi->typelen++] = ntype;
 
-    /* write length */
-    memset(nframebuf->buf + nframebuf->offset, 0, ETH_ABI_WORD_SIZE);
-    nframebuf->len += ETH_ABI_WORD_SIZE;
-    nframebuf->offset += ETH_ABI_WORD_SIZE;
+    // leave word for the length of the array
+    ntype->offset += ETH_ABI_WORD_SIZE;
 
-    cframe->dybufs[cframe->dybuflen++] = nframe->buf;
-    nframe->pframe = cframe;
-    abi->cframe = nframe;
-    return 1;
+    // store the starting position of the array in the parent buffer
+    ntype->ploc = ctype->offset;
+
+    // leave space for the location of the array in the parent buffer
+    ctype->offset += ETH_ABI_WORD_SIZE;
+
+    // store the parent buffer
+    ntype->ptype = ctype;
+
+    return ETH_OK;
   }
 
   if (abi->m == ETH_ABI_DECODE) {
-    ethc_abi_buf_pr64(dyoffset, cframebuf, cframebuf->offset);
-    dyoffset = cframebuf->offset % 32 != 0 ? dyoffset + 4 : dyoffset;
-    ethc_abi_buf_pr64(framelen, cframebuf, dyoffset);
+    // allocate new type
+    ethc_abi_buffer_alloc(&ntype, abi);
 
-    nframebuf = (struct ethc_abi_buf*)malloc(sizeof(struct ethc_abi_buf));
-    if (nframebuf == NULL)
-      return -1;
-    
-    nframe = (struct ethc_abi_frame*)malloc(sizeof(struct ethc_abi_frame));
-    if (nframe == NULL) {
-      free(nframebuf);
-      return -1;
-    }
+    // read the offset of the type
+    ethc_abi_buffer_padded_read64(typeoffset, ctype, ctype->offset);
+    ctype->offset += ETH_ABI_WORD_SIZE;
 
+    // read the length of the type
+    ethc_abi_buffer_padded_read64(typelen, ctype, typeoffset);
+    typeoffset += ETH_ABI_WORD_SIZE;
+
+    // calculate how many bytes we should copy to the new type
+    nsize = ctype->size - typeoffset;
+    ntype->size = nsize;
+
+    // copy the content to the new type
+    memcpy(ntype->rawbuf + ntype->offset, ctype->rawbuf + typeoffset, nsize);
+
+    // enter the type
+    ethc_abi_type_stack_push(&abi->stack, ntype);
+
+    // return the length of the array
     if (len != NULL)
-      *len = framelen;
+      *len = typelen;
 
-    nframebuf->buf = &(cframebuf->buf[dyoffset + 32]);
-    nframebuf->len = framelen * 32;
-    nframebuf->offset = 0;
-    nframebuf->doffset = cframebuf->offset;
-
-    nframe->pframe = cframe;
-    nframe->buf = nframebuf;
-    nframe->len = framelen;
-    
-    abi->cframe = nframe;
-    cframebuf->offset += 32;
-    return 1;
+    return ETH_OK;
   }
 
-  return -1;
+  return ETH_ERR_INVALID_ARGS;
 }
 
-int eth_abi_array_end(struct eth_abi *abi) {
-  struct ethc_abi_buf *cframebuf;
-  struct ethc_abi_frame *cframe;
-  uint64_t asize;
+ETH_OP eth_abi_array_end(struct eth_abi *abi) {
+  struct ethc_abi_dynamic_type *ctype = NULL, *ptype = NULL;
+  size_t arrlen = 0;
 
-  cframe = abi->cframe;
-  cframebuf = cframe->buf;
+  if (abi == NULL)
+    return ETH_ERR_INVALID_ARGS;
+
+  // get the current buffer from the stack
+  ethc_abi_type_stack_peek(&ctype, &abi->stack);
 
   if (abi->m == ETH_ABI_ENCODE) {
-    asize = cframebuf->len / ETH_ABI_WORD_SIZE - 1;
+    // calculate the array length (remove one word allocated for the length)
+    arrlen = ((ctype->offset - ETH_ABI_WORD_SIZE) / ETH_ABI_WORD_SIZE);
 
-    /* backpatch the length */
-    ethc_abi_buf_pw64(cframebuf, asize, 0);
+    // encode the length of the array to the current buffer
+    ethc_abi_buffer_padded_write64(ctype, arrlen, 0);
 
-    ethc_abi_frame_backpatch(abi->cframe);
-    abi->cframe = abi->cframe->pframe;
-    return 1;
+    ethc_abi_type_stack_pop(&ptype, &abi->stack);
+    ethc_abi_type_stack_peek(&ptype, &abi->stack);
+
+    return ETH_OK;
   }
 
   if (abi->m == ETH_ABI_DECODE) {
-    abi->cframe = abi->cframe->pframe;
-    return 1;
+    ethc_abi_type_stack_pop(&ptype, &abi->stack);
+    return ETH_OK;
   }
 
-  return -1;
+  return ETH_ERR_INVALID_ARGS;
 }
 
-int eth_abi_bool(struct eth_abi *abi, uint8_t *b) {
-  uint8_t u8bool;
+
+void ethc_abi_backpatch(struct eth_abi *abi, struct ethc_abi_dynamic_type *buf) {
+  struct ethc_abi_dynamic_type *type = NULL, *ptype = NULL;
+  size_t i = 0, patchloc = 0, dyloc = 0;
+
+  (void)buf;
+  (void)type;
+
+  for (i = 0; i < abi->typelen; i++) {
+    type = abi->types[i];
+    ptype = type->ptype;
+
+    // save the absolute position of the current buffer
+    type->absloc = buf->offset;
+
+    // calculate the location of where we should write its offset to
+    patchloc = ptype->absloc + type->ploc;
+
+    // calculate the distance between the parent buffer offset and the current buffer
+    dyloc = i == 0
+        ? (buf->offset - ptype->absloc)
+        : (buf->offset - ptype->absloc) - ETH_ABI_WORD_SIZE;
+
+    // normalize the dynamic type location
+    dyloc = dyloc % ETH_ABI_WORD_SIZE != 0
+        ? dyloc - ETH_ABI_FUNCTION_SELECTOR_SIZE
+        : dyloc;
+
+    // copy the contents of the buffer to given buffer
+    memcpy(buf->rawbuf + buf->offset, type->rawbuf, type->offset);
+    buf->offset += type->offset;
+
+    // backpatch the offset of this buffer
+    ethc_abi_buffer_padded_write64(buf, dyloc, patchloc);
+  }
+}
+
+ETH_OP eth_abi_bool(struct eth_abi *abi, uint8_t *b) {
+  uint8_t bint;
 
   if (abi == NULL || b == NULL)
-    return -1;
+    return ETH_ERR_INVALID_ARGS;
 
   if (abi->m == ETH_ABI_ENCODE) {
-    u8bool = *b == 0 ? 0 : 1;
-    return eth_abi_uint8(abi, &u8bool);
+    bint = *b == 0 ? 0 : 1;
+    return eth_abi_uint8(abi, &bint);
   }
 
   if (abi->m == ETH_ABI_DECODE)
     return eth_abi_uint8(abi, b);
 
-  return -1;
+  return ETH_ERR_INVALID_ARGS;
 }
 
-int eth_abi_address(struct eth_abi *abi, char **addr) {
-  struct ethc_abi_frame *cframe;
-  struct ethc_abi_buf *cframebuf;
+ETH_OP eth_abi_address(struct eth_abi *abi, char **addr) {
+  struct ethc_abi_dynamic_type *ctype;
   uint8_t *tmp;
 
-  cframe = abi->cframe;
-  cframebuf = cframe->buf;
+  if (abi == NULL || addr == NULL)
+    return ETH_ERR_INVALID_ARGS;
+
+  ethc_abi_type_stack_peek(&ctype, &abi->stack);
 
   if (abi->m == ETH_ABI_ENCODE) {
     if (eth_is_hex(*addr, 42) <= 0)
-      return -1;
+      return ETH_ERR_INVALID_ARGS;
 
     if (eth_hex_to_bytes(&tmp, *addr, 42) < 0)
-      return -1;
+      return ETH_ERR_INVALID_ARGS;
 
-    memcpy(&(cframebuf->buf[cframebuf->offset + 12]), tmp, 20);
-    cframebuf->offset += ETH_ABI_WORD_SIZE;
-    cframebuf->len += ETH_ABI_WORD_SIZE;
-    return 1;
+    memcpy(&(ctype->rawbuf[ctype->offset + 12]), tmp, 20);
+
+    ctype->offset += ETH_ABI_WORD_SIZE;
+
+    return ETH_OK;
   }
 
   if (abi->m == ETH_ABI_DECODE) {
-    tmp = &(cframebuf->buf[cframebuf->offset + 12]);
+    tmp = &(ctype->rawbuf[ctype->offset + 12]);
 
     if (eth_hex_from_bytes(addr, tmp, 20) < 0)
-      return -1;
+      return ETH_ERR_INVALID_ARGS;
 
-    cframebuf->offset += 32;
+    ctype->offset += 32;
 
-    return 1;
+    return ETH_OK;
   }
-  return -1;
+
+  return ETH_ERR_INVALID_ARGS;
 }
 
-int eth_abi_call(struct eth_abi *abi, char **fn, int *len) {
-  struct ethc_abi_buf *cframebuf;
+ETH_OP eth_abi_call(struct eth_abi *abi, char **func, int *len) {
+  struct ethc_abi_dynamic_type *ctype = NULL;
   uint8_t keccak[32];
-  int fnlen;
+  int funclen = 0;
 
-  cframebuf = abi->cframe->buf;
+  if (abi == NULL || func == NULL)
+    return ETH_ERR_INVALID_ARGS;
+
+  ethc_abi_type_stack_peek(&ctype, &abi->stack);
 
   if (abi->m == ETH_ABI_ENCODE) {
     if (len == NULL)
-      fnlen = strlen(*fn);
+      funclen = strlen(*func);
 
-    if (eth_keccak256(keccak, (uint8_t*)*fn, fnlen) < 0)
-      return -1;
+    if (eth_keccak256(keccak, (uint8_t*)*func, funclen) < 0)
+      return ETH_ERR_INVALID_ARGS;
 
-    memcpy(&(cframebuf->buf[cframebuf->offset]), keccak, 4);
-    cframebuf->buf += 4;
-    return 1;
+    memcpy(&(ctype->rawbuf[ctype->offset]), keccak, ETH_ABI_FUNCTION_SELECTOR_SIZE);
+
+    ctype->offset += ETH_ABI_FUNCTION_SELECTOR_SIZE;
+
+    return ETH_OK;
   }
 
   if (abi->m == ETH_ABI_DECODE) {
-    fnlen = eth_hex_from_bytes(fn, &(cframebuf->buf[cframebuf->offset]), 4);
-    if (fnlen < 0)
-      return -1;
+    keccak[0] = *(ctype->rawbuf + ctype->offset++);
+    keccak[1] = *(ctype->rawbuf + ctype->offset++);
+    keccak[2] = *(ctype->rawbuf + ctype->offset++);
+    keccak[3] = *(ctype->rawbuf + ctype->offset++);
+
+    snprintf(*func, ETH_ABI_FUNCTION_SELECTOR_SIZE + 1, "%02x%02x%02x%02x", keccak[0], keccak[1], keccak[2], keccak[3]);
 
     if (len != NULL)
-      *len = fnlen;
-    cframebuf->offset += 4;
-    return 1;
+      *len = ETH_ABI_FUNCTION_SELECTOR_SIZE;
+
+    return ETH_OK;
   }
 
-  return -1;
+  return ETH_ERR_INVALID_ARGS;
 }
 
-int eth_abi_call_end(struct eth_abi *abi) {
-  struct ethc_abi_frame *cframe;
-  struct ethc_abi_buf *cframebuf;
 
-  cframe = abi->cframe;
-  cframebuf = cframe->buf;
+ETH_OP eth_abi_call_end(struct eth_abi *abi) {
+  (void)abi;
 
-  if (abi->m == ETH_ABI_ENCODE) {
-    ethc_abi_frame_backpatch(cframe);
-    cframebuf->buf -= 4;
-    cframebuf->len += 4;
-    cframebuf->offset += 4;
-    return 1;
-  }
-
-  if (abi->m == ETH_ABI_DECODE)
-    return 1;
-
-  return -1;
+  return ETH_OK;
 }
 
-int eth_abi_uint8(struct eth_abi *abi, uint8_t *d) {
-  struct ethc_abi_buf *cframebuf;
+ETH_OP eth_abi_uint8(struct eth_abi *abi, uint8_t *d) {
+  struct ethc_abi_dynamic_type *ctype = NULL;
 
   if (abi == NULL || d == NULL)
-    return -1;
+    return ETH_ERR_INVALID_ARGS;
 
-  cframebuf = abi->cframe->buf;
+  ethc_abi_type_stack_peek(&ctype, &abi->stack);
 
   if (abi->m == ETH_ABI_ENCODE) {
-    ethc_abi_buf_pw8(cframebuf, *d, cframebuf->offset);
-    cframebuf->offset += ETH_ABI_WORD_SIZE;
-    cframebuf->len += ETH_ABI_WORD_SIZE;
-    return 1;
+    ethc_abi_buffer_padded_write8(ctype, *d, ctype->offset);
+
+    ctype->offset += ETH_ABI_WORD_SIZE;
+
+    return ETH_OK;
   }
 
   if (abi->m == ETH_ABI_DECODE) {
-    ethc_abi_buf_pr8(*d, cframebuf, cframebuf->offset);
-    cframebuf->offset += ETH_ABI_WORD_SIZE;
-    return 1;
+    ethc_abi_buffer_padded_read8(*d, ctype, ctype->offset);
+
+    ctype->offset += ETH_ABI_WORD_SIZE;
+
+    return ETH_OK;
   }
 
-  return -1;
+  return ETH_ERR_INVALID_ARGS;
 }
 
-int eth_abi_uint16(struct eth_abi *abi, uint16_t *d) {
-  struct ethc_abi_buf *cframebuf;
+ETH_OP eth_abi_uint16(struct eth_abi *abi, uint16_t *d) {
+  struct ethc_abi_dynamic_type *ctype;
 
   if (abi == NULL || d == NULL)
-    return -1;
+    return ETH_ERR_INVALID_ARGS;
 
-  cframebuf = abi->cframe->buf;
+  ethc_abi_type_stack_peek(&ctype, &abi->stack);
 
   if (abi->m == ETH_ABI_ENCODE) {
-    ethc_abi_buf_pw16(cframebuf, *d, cframebuf->offset);
-    cframebuf->offset += ETH_ABI_WORD_SIZE;
-    cframebuf->len += ETH_ABI_WORD_SIZE;
-    return 1;
+    ethc_abi_buffer_padded_write16(ctype, *d, ctype->offset);
+
+    ctype->offset += ETH_ABI_WORD_SIZE;
+
+    return ETH_OK;
   }
 
   if (abi->m == ETH_ABI_DECODE) {
-    ethc_abi_buf_pr16(*d, cframebuf, cframebuf->offset);
-    cframebuf->offset += ETH_ABI_WORD_SIZE;
-    return 1;
+    ethc_abi_buffer_padded_read16(*d, ctype, ctype->offset);
+
+    ctype->offset += ETH_ABI_WORD_SIZE;
+
+    return ETH_OK;
   }
 
-  return -1;
+  return ETH_ERR_INVALID_ARGS;
 }
 
-int eth_abi_uint32(struct eth_abi *abi, uint32_t *d) {
-  struct ethc_abi_buf *cframebuf;
+ETH_OP eth_abi_uint32(struct eth_abi *abi, uint32_t *d) {
+  struct ethc_abi_dynamic_type *ctype;
 
   if (abi == NULL || d == NULL)
-    return -1;
+    return ETH_ERR_INVALID_ARGS;
 
-  cframebuf = abi->cframe->buf;
+  ethc_abi_type_stack_peek(&ctype, &abi->stack);
 
   if (abi->m == ETH_ABI_ENCODE) {
-    ethc_abi_buf_pw32(cframebuf, *d, cframebuf->offset);
-    cframebuf->offset +=  ETH_ABI_WORD_SIZE;
-    cframebuf->len +=  ETH_ABI_WORD_SIZE;
-    return 1;
+    ethc_abi_buffer_padded_write32(ctype, *d, ctype->offset);
+
+    ctype->offset += ETH_ABI_WORD_SIZE;
+
+    return ETH_OK;
   }
 
   if (abi->m == ETH_ABI_DECODE) {
-    ethc_abi_buf_pr32(*d, cframebuf, cframebuf->offset);
-    cframebuf->offset += ETH_ABI_WORD_SIZE;
-    return 1;
+    ethc_abi_buffer_padded_read32(*d, ctype, ctype->offset);
+
+    ctype->offset += ETH_ABI_WORD_SIZE;
+
+    return ETH_OK;
   }
 
-  return -1;
+  return ETH_ERR_INVALID_ARGS;
 }
 
-int eth_abi_uint64(struct eth_abi *abi, uint64_t *d) {
-  struct ethc_abi_buf *cframebuf;
+ETH_OP eth_abi_uint64(struct eth_abi *abi, uint64_t *d) {
+  struct ethc_abi_dynamic_type *ctype;
 
   if (abi == NULL || d == NULL)
-    return -1;
+    return ETH_ERR_INVALID_ARGS;
 
-  cframebuf = abi->cframe->buf;
+  ethc_abi_type_stack_peek(&ctype, &abi->stack);
 
   if (abi->m == ETH_ABI_ENCODE) {
-    ethc_abi_buf_pw64(cframebuf, *d, cframebuf->offset);
-    cframebuf->offset += ETH_ABI_WORD_SIZE;
-    cframebuf->len += ETH_ABI_WORD_SIZE;
-    return 1;
+    ethc_abi_buffer_padded_write64(ctype, *d, ctype->offset);
+
+    ctype->offset += ETH_ABI_WORD_SIZE;
+
+    return ETH_OK;
   }
 
   if (abi->m == ETH_ABI_DECODE) {
-    ethc_abi_buf_pr64(*d, cframebuf, cframebuf->offset);
-    cframebuf->offset += ETH_ABI_WORD_SIZE;
-    cframebuf->len += ETH_ABI_WORD_SIZE;
-    return 1;
+    ethc_abi_buffer_padded_read64(*d, ctype, ctype->offset);
+
+    ctype->offset += ETH_ABI_WORD_SIZE;
+
+    return ETH_OK;
   }
 
-  return -1;
+  return ETH_ERR_INVALID_ARGS;
 }
 
-int eth_abi_int8(struct eth_abi *abi, int8_t *d) {
-  struct ethc_abi_buf *cframebuf;
-  int f;
+ETH_OP eth_abi_int8(struct eth_abi *abi, int8_t *d) {
+  struct ethc_abi_dynamic_type *ctype = NULL;
+  int fill;
 
   if (abi == NULL || d == NULL)
-    return -1;
+    return ETH_ERR_INVALID_ARGS;
 
-  cframebuf = abi->cframe->buf;
+  ethc_abi_type_stack_peek(&ctype, &abi->stack);
 
   if (abi->m == ETH_ABI_ENCODE) {
-    f = *d & 0x8000 ? 0xFF : 0x00;
-    memset(&(cframebuf->buf[cframebuf->offset]), f, ETH_ABI_WORD_SIZE - 1);
-    cframebuf->offset += ETH_ABI_WORD_SIZE - 1;
-    cframebuf->buf[cframebuf->offset++] = *d;
-    cframebuf->len += ETH_ABI_WORD_SIZE;
-    return 1;
+    fill = *d & 0x8000 ? 0xFF : 0x00;
+
+    ethc_abi_buffer_padded_write8(ctype, *d, ctype->offset);
+
+    memset(&(ctype->rawbuf[ctype->offset]), fill, ETH_ABI_WORD_SIZE - 1);
+
+    ctype->offset += ETH_ABI_WORD_SIZE;
+
+    return ETH_OK;
   }
 
   if (abi->m == ETH_ABI_DECODE) {
-    cframebuf->offset += ETH_ABI_WORD_SIZE - 1;
-    *d = cframebuf->buf[cframebuf->offset++];
-    return 1;
+    ctype->offset += ETH_ABI_WORD_SIZE - 1;
+
+    *d = ctype->rawbuf[ctype->offset++];
+
+    return ETH_OK;
   }
 
-  return -1;
+  return ETH_ERR_INVALID_ARGS;
 }
 
-int eth_abi_int16(struct eth_abi *abi, int16_t *d) {
-  struct ethc_abi_buf *cframebuf;
-  int f;
+ETH_OP eth_abi_int16(struct eth_abi *abi, int16_t *d) {
+  struct ethc_abi_dynamic_type *ctype = NULL;
+  int fill;
 
   if (abi == NULL || d == NULL)
-    return -1;
+    return ETH_ERR_INVALID_ARGS;
 
-  cframebuf = abi->cframe->buf;
+  ethc_abi_type_stack_peek(&ctype, &abi->stack);
 
   if (abi->m == ETH_ABI_ENCODE) {
-    f = *d & 0x8000 ? 0xFF : 0x00;
-    memset(&(cframebuf->buf[cframebuf->offset]), f, ETH_ABI_WORD_SIZE - 2);
-    ethc_abi_buf_pw16(cframebuf, *d, cframebuf->offset);
-    cframebuf->offset += ETH_ABI_WORD_SIZE;
-    cframebuf->len += ETH_ABI_WORD_SIZE;
-    return 1;
+    fill = *d & 0x8000 ? 0xFF : 0x00;
+
+    ethc_abi_buffer_padded_write16(ctype, *d, ctype->offset);
+
+    memset(&(ctype->rawbuf[ctype->offset]), fill, ETH_ABI_WORD_SIZE - 2);
+
+    ctype->offset += ETH_ABI_WORD_SIZE;
+
+    return ETH_OK;
   }
 
   if (abi->m == ETH_ABI_DECODE) {
-    ethc_abi_buf_pr16(*d, cframebuf, cframebuf->offset);
-    cframebuf->offset += ETH_ABI_WORD_SIZE;
-    return 1;
+    ethc_abi_buffer_padded_read16(*d, ctype, ctype->offset);
+
+    ctype->offset += ETH_ABI_WORD_SIZE;
+
+    return ETH_OK;
   }
 
-  return -1;
+  return ETH_ERR_INVALID_ARGS;
 }
 
-int eth_abi_int32(struct eth_abi *abi, int32_t *d) {
-  struct ethc_abi_buf *cframebuf;
-  int f;
+ETH_OP eth_abi_int32(struct eth_abi *abi, int32_t *d) {
+  struct ethc_abi_dynamic_type *ctype = NULL;
+  int fill;
 
   if (abi == NULL || d == NULL)
-    return -1;
+    return ETH_ERR_INVALID_ARGS;
 
-  cframebuf = abi->cframe->buf;
+  ethc_abi_type_stack_peek(&ctype, &abi->stack);
 
   if (abi->m == ETH_ABI_ENCODE) {
-    f = *d & 0x80000000 ? 0xFF : 0x00;
-    memset(&(cframebuf->buf[cframebuf->offset]), f, ETH_ABI_WORD_SIZE - 4);
-    ethc_abi_buf_pw32(cframebuf, *d, cframebuf->offset);
-    cframebuf->offset += ETH_ABI_WORD_SIZE;
-    cframebuf->len += ETH_ABI_WORD_SIZE;
-    return 1;
+    fill = *d & 0x80000000 ? 0xFF : 0x00;
+
+    ethc_abi_buffer_padded_write32(ctype, *d, ctype->offset);
+
+    memset(&(ctype->rawbuf[ctype->offset]), fill, ETH_ABI_WORD_SIZE - 4);
+
+    ctype->offset += ETH_ABI_WORD_SIZE;
+
+    return ETH_OK;
   }
 
   if (abi->m == ETH_ABI_DECODE) {
-    ethc_abi_buf_pr32(*d, cframebuf, cframebuf->offset);
-    cframebuf->offset += ETH_ABI_WORD_SIZE;
-    return 1;
+    ethc_abi_buffer_padded_read32(*d, ctype, ctype->offset);
+
+    ctype->offset += ETH_ABI_WORD_SIZE;
+
+    return ETH_OK;
   }
 
-  return -1;
+  return ETH_ERR_INVALID_ARGS;
 }
 
-int eth_abi_int64(struct eth_abi *abi, int64_t *d) {
-  struct ethc_abi_buf *cframebuf;
-  int f;
+ETH_OP eth_abi_int64(struct eth_abi *abi, int64_t *d) {
+  struct ethc_abi_dynamic_type *ctype = NULL;
+  int fill;
 
   if (abi == NULL || d == NULL)
-    return -1;
+    return ETH_ERR_INVALID_ARGS;
 
-  cframebuf = abi->cframe->buf;
+  ethc_abi_type_stack_peek(&ctype, &abi->stack);
 
   if (abi->m == ETH_ABI_ENCODE) {
-    f = *d & 0x8000000000000000 ? 0xFF : 0x00;
-    memset(&(cframebuf->buf[cframebuf->offset]), f, ETH_ABI_WORD_SIZE - 8);
-    ethc_abi_buf_pw64(cframebuf, *d, cframebuf->offset);
-    cframebuf->offset += ETH_ABI_WORD_SIZE;
-    cframebuf->len += ETH_ABI_WORD_SIZE;
-    return 1;
+    fill = *d & 0x8000000000000000 ? 0xFF : 0x00;
+
+    ethc_abi_buffer_padded_write64(ctype, *d, ctype->offset);
+
+    memset(&(ctype->rawbuf[ctype->offset]), fill, ETH_ABI_WORD_SIZE - 8);
+
+    ctype->offset += ETH_ABI_WORD_SIZE;
+
+    return ETH_OK;
   }
 
   if (abi->m == ETH_ABI_DECODE) {
-    ethc_abi_buf_pr64(*d, cframebuf, cframebuf->offset);
-    cframebuf->offset += ETH_ABI_WORD_SIZE ;
-    return 1;
+    ethc_abi_buffer_padded_read64(*d, ctype, ctype->offset);
+
+    ctype->offset += ETH_ABI_WORD_SIZE;
+
+    return ETH_OK;
   }
 
-  return -1;
+  return ETH_ERR_INVALID_ARGS;
 }
 
-int eth_abi_bytes8(struct eth_abi *abi, uint8_t *bytes) {
-  struct ethc_abi_buf *cframebuf;
+ETH_OP eth_abi_bytes8(struct eth_abi *abi, uint8_t *bytes) {
+  struct ethc_abi_dynamic_type *ctype = NULL;
 
   if (abi == NULL || bytes == NULL)
-    return -1;
+    return ETH_OK;
 
-  cframebuf = abi->cframe->buf;
+  ethc_abi_type_stack_peek(&ctype, &abi->stack);
 
   if (abi->m == ETH_ABI_ENCODE) {
-    memcpy(&(cframebuf->buf[cframebuf->offset]), bytes, 8);
-    cframebuf->offset += ETH_ABI_WORD_SIZE;
-    cframebuf->len += ETH_ABI_WORD_SIZE;
-    return 1;
+    memcpy(&(ctype->rawbuf[ctype->offset]), bytes, 8);
+
+    ctype->offset += ETH_ABI_WORD_SIZE;
+
+    return ETH_OK;
   }
 
   if (abi->m == ETH_ABI_DECODE) {
-    memcpy(bytes, &(cframebuf->buf[cframebuf->offset]), 8);
-    cframebuf->offset += ETH_ABI_WORD_SIZE;
-    return 1;
+    memcpy(bytes, &(ctype->rawbuf[ctype->offset]), 8);
+
+    ctype->offset += ETH_ABI_WORD_SIZE;
+
+    return ETH_OK;
   }
 
-  return -1;
+  return ETH_ERR_INVALID_ARGS;
 }
 
-int eth_abi_bytes16(struct eth_abi *abi, uint8_t *bytes) {
-  struct ethc_abi_buf *cframebuf;
+ETH_OP eth_abi_bytes16(struct eth_abi *abi, uint8_t *bytes) {
+  struct ethc_abi_dynamic_type *ctype = NULL;
 
   if (abi == NULL || bytes == NULL)
-    return -1;
+    return ETH_OK;
 
-  cframebuf = abi->cframe->buf;
+  ethc_abi_type_stack_peek(&ctype, &abi->stack);
 
   if (abi->m == ETH_ABI_ENCODE) {
-    memcpy(&(cframebuf->buf[cframebuf->offset]), bytes, 16);
-    cframebuf->offset += ETH_ABI_WORD_SIZE;
-    cframebuf->len += ETH_ABI_WORD_SIZE;
-    return 1;
+    memcpy(&(ctype->rawbuf[ctype->offset]), bytes, 16);
+
+    ctype->offset += ETH_ABI_WORD_SIZE;
+
+    return ETH_OK;
   }
 
   if (abi->m == ETH_ABI_DECODE) {
-    memcpy(bytes, &(cframebuf->buf[cframebuf->offset]), 16);
-    cframebuf->offset += ETH_ABI_WORD_SIZE;
-    return 1;
+    memcpy(bytes, &(ctype->rawbuf[ctype->offset]), 16);
+
+    ctype->offset += ETH_ABI_WORD_SIZE;
+
+    return ETH_OK;
   }
 
-  return -1;
+  return ETH_ERR_INVALID_ARGS;
 }
 
-int eth_abi_bytes32(struct eth_abi *abi, uint8_t *bytes) {
-  struct ethc_abi_buf *cframebuf;
+ETH_OP eth_abi_bytes32(struct eth_abi *abi, uint8_t *bytes) {
+  struct ethc_abi_dynamic_type *ctype = NULL;
 
   if (abi == NULL || bytes == NULL)
-    return -1;
+    return ETH_ERR_INVALID_ARGS;
 
-  cframebuf = abi->cframe->buf;
+  ethc_abi_type_stack_peek(&ctype, &abi->stack);
 
   if (abi->m == ETH_ABI_ENCODE) {
-    memcpy(&(cframebuf->buf[cframebuf->offset]), bytes, 32);
-    cframebuf->offset += ETH_ABI_WORD_SIZE;
-    cframebuf->len += ETH_ABI_WORD_SIZE;
-    return 1;
+    memcpy(&(ctype->rawbuf[ctype->offset]), bytes, 32);
+
+    ctype->offset += ETH_ABI_WORD_SIZE;
+
+    return ETH_OK;
   }
 
   if (abi->m == ETH_ABI_DECODE) {
-    memcpy(bytes, &(cframebuf->buf[cframebuf->offset]), 32);
-    cframebuf->offset += ETH_ABI_WORD_SIZE;
-    return 1;
+    memcpy(bytes, &(ctype->rawbuf[ctype->offset]), 32);
+
+    ctype->offset += ETH_ABI_WORD_SIZE;
+
+    return ETH_OK;
   }
 
-  return -1;
+  return ETH_ERR_INVALID_ARGS;
 }
 
-int eth_abi_bytes64(struct eth_abi *abi, uint8_t *bytes) {
-  struct ethc_abi_buf *cframebuf;
+ETH_OP eth_abi_bytes(struct eth_abi *abi, uint8_t *bytes, size_t *len) {
+  struct ethc_abi_dynamic_type *ctype = NULL, *ntype = NULL, *buf = NULL;
+  size_t dyoffset = 0, typelen = 0;
+  // uint8_t *buf;
 
   if (abi == NULL || bytes == NULL)
-    return -1;
+    return ETH_ERR_INVALID_ARGS;
 
-  cframebuf = abi->cframe->buf;
-
-  if (abi->m == ETH_ABI_ENCODE) {
-    memcpy(&(cframebuf->buf[cframebuf->offset]), bytes, 64);
-    cframebuf->offset += ETH_ABI_WORD_SIZE;
-    cframebuf->len += ETH_ABI_WORD_SIZE;
-    return 1;
-  }
-
-  if (abi->m == ETH_ABI_DECODE) {
-    memcpy(bytes, &(cframebuf->buf[cframebuf->offset]), 64);
-    cframebuf->offset += ETH_ABI_WORD_SIZE;
-    return 1;
-  }
-
-  return -1;
-}
-
-int eth_abi_mpint(struct eth_abi *abi, mpz_t mpz) {
-  uint8_t bytes[32] = {0};
-  size_t size;
-  mpz_t mpztmp, mpzmask;
-
-  if (abi->m == ETH_ABI_ENCODE) {
-    mpz_init_set_str(mpzmask, "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", 0);
-
-    /* keep only 256 bits (one word) */
-    mpz_init(mpztmp);
-    mpz_and(mpztmp, mpz, mpzmask);
-
-    size = mpz_sizeinbase(mpztmp, 16);
-    size = (size % 2 == 0 ? size : size + 1) / 2;
-    mpz_export((bytes + 32) - size, NULL, 1, sizeof(uint8_t), 0, 0, mpztmp);
-    mpz_clears(mpztmp, mpzmask, NULL);
-
-    return eth_abi_bytes32(abi, bytes);
-  }
-
-  if (abi->m == ETH_ABI_DECODE) {
-    if (eth_abi_bytes32(abi, bytes) == 0)
-      return 0;
-
-    mpz_import(mpz, 32, 1, sizeof(uint8_t), 0, 0, bytes);
-    return 1;
-  }
-
-  return 0;
-}
-
-int eth_abi_bytes(struct eth_abi *abi, uint8_t **bytes, size_t *len) {
-  struct ethc_abi_frame *cframe;
-  struct ethc_abi_buf *cframebuf, *dybuf;
-  uint64_t dyoffset, blen;
-  uint8_t *buf;
-  size_t bsize;
-  
-  cframe = abi->cframe;
-  cframebuf = cframe->buf;
+  ethc_abi_type_stack_peek(&ctype, &abi->stack);
   
   if (abi->m == ETH_ABI_ENCODE) {
-    /* make the arbitrary length 32-byte aligned (16->32, 33->64) */
-    bsize = *len % ETH_ABI_WORD_SIZE
+    // allocate buffer for the bytes type
+    ethc_abi_buffer_alloc(&ntype, abi);
+
+    // write the length of the buffer
+    ethc_abi_buffer_padded_write64(ntype, *len, ntype->offset);
+    ntype->offset += ETH_ABI_WORD_SIZE;
+
+    // copy the contents of the argument to the new buffer
+    memcpy(ntype->rawbuf + ntype->offset, bytes, *len);
+
+    // make the arbitrary length 32-byte aligned (16->32, 33->64)
+    dyoffset = *len % ETH_ABI_WORD_SIZE
       ? *len + (ETH_ABI_WORD_SIZE - (*len % ETH_ABI_WORD_SIZE))
       : *len;
 
-    if (ethc_abi_buf_init(&dybuf, ETH_ABI_WORD_SIZE + bsize) < 0)
-      return -1;
+    // save the 32-byte aligned offset
+    ntype->offset += dyoffset;
 
-    /* store the declaration offset for the dynamic buffer */
-    dybuf->doffset = cframebuf->offset;
+    // store the starting position of the array in the parent buffer
+    ntype->ploc = ctype->offset;
 
-    memset(&(cframebuf->buf[cframebuf->offset]), 0, ETH_ABI_WORD_SIZE);
-    cframebuf->offset += ETH_ABI_WORD_SIZE;
-    cframebuf->len += ETH_ABI_WORD_SIZE;
+    // leave space for the location of the array in the current buffer
+    ctype->offset += ETH_ABI_WORD_SIZE;
 
-    /* write the length */
-    ethc_abi_buf_pw64(dybuf, *len, 0);
-    dybuf->offset += ETH_ABI_WORD_SIZE;
-    dybuf->len += ETH_ABI_WORD_SIZE;
+    // save the parent buffer of the new buffer
+    ntype->ptype = ctype;
 
-    memcpy(&(dybuf->buf[dybuf->offset]), *bytes, *len);
-    dybuf->offset += bsize;
-    dybuf->len += bsize;
+    // add the bytes to dynamic types list
+    abi->types[abi->typelen++] = ntype;
 
-    cframe->dybufs[cframe->dybuflen++] = dybuf;
-    return 1;
+    return ETH_OK;
   }
   
   if (abi->m == ETH_ABI_DECODE) {
-    /* read the offset */
-    ethc_abi_buf_pr64(dyoffset, cframebuf, cframebuf->offset);
-    cframebuf->offset += ETH_ABI_WORD_SIZE;
+    // allocate buffer
+    ethc_abi_buffer_alloc(&buf, abi);
 
-    /* read the length */
-    ethc_abi_buf_pr64(blen, cframebuf, dyoffset);
+    // read the location of the buffer
+    ethc_abi_buffer_padded_read64(dyoffset, ctype, ctype->offset);
+    ctype->offset += ETH_ABI_WORD_SIZE;
 
-    buf = (uint8_t*)malloc(blen);
-    if (buf == NULL)
-      return -1;
+    // read the length of the bytes
+    ethc_abi_buffer_padded_read64(typelen, ctype, dyoffset);
 
-    memcpy(buf, &(cframebuf->buf[cframebuf->offset + dyoffset]), blen);
-    *bytes = buf;
+    // copy the content of the bytes
+    memcpy(bytes, ctype->rawbuf + ctype->offset + dyoffset, typelen);
 
+    // return the length
     if (len != NULL)
-      *len = blen;
-    return 1;
+      *len = typelen;
+
+    return ETH_OK;
   }
   
-  return -1;
+  return ETH_ERR_INVALID_ARGS;
 }
 
-int eth_abi_from_hex(struct eth_abi *abi, char *hex, int len) {
-  struct ethc_abi_frame *nframe;
+ETH_OP eth_abi_from_hex(struct eth_abi *abi, char *hex, int len) {
+  struct ethc_abi_dynamic_type *ntype = NULL;
+  uint8_t *buf = NULL;
 
-  if (abi == NULL || abi == NULL)
-    return -1;
+  if (abi == NULL || hex == NULL)
+    return ETH_ERR_INVALID_ARGS;
 
-  if (ethc_abi_frame_init(&nframe) < 0)
-    return -1;
+  ethc_abi_buffer_alloc(&ntype, abi);
 
-  if ((len = eth_hex_to_bytes(&(nframe->buf->buf), hex, len)) < 0)
-    return -1;
+  if (len == -1)
+    len = strlen(hex);
 
-  nframe->pframe = NULL;
-  nframe->buf->len = len;
+  if ((len = eth_hex_to_bytes(&buf, hex, len)) < 0)
+    return ETH_ERR_INVALID_ARGS;
+
+  memcpy(ntype->rawbuf, buf, len);
+  ntype->size = len;
+
+  // enter the type
+  ethc_abi_type_stack_push(&abi->stack, ntype);
+
   abi->m = ETH_ABI_DECODE;
-  abi->cframe = nframe;
-  return 1;
+
+  return ETH_OK;
 }
 
-int eth_abi_to_hex(struct eth_abi *abi, char **hex, size_t *len) {
-  struct ethc_abi_buf *cframebuf;
+ETH_OP eth_abi_to_hex(struct eth_abi *abi, char **hex, size_t *len) {
+  struct ethc_abi_dynamic_type *ctype = NULL;
   int hexlen;
 
-  cframebuf = abi->cframe->buf;
+  if (abi == NULL || hex == NULL)
+    return ETH_ERR_INVALID_ARGS;
 
-  if (abi == NULL || hex == NULL || len == NULL)
-    return -1;
+  ethc_abi_type_stack_peek(&ctype, &abi->stack);
 
-  ethc_abi_frame_backpatch(abi->cframe);
+  ethc_abi_backpatch(abi, ctype);
 
-  if ((hexlen = eth_hex_from_bytes(hex, cframebuf->buf, cframebuf->len)) < 0)
-    return -1;
+  if ((hexlen = eth_hex_from_bytes(hex, ctype->rawbuf, ctype->offset)) < 0)
+    return ETH_ERR_INVALID_ARGS;
 
   *len = hexlen;
-  return 1;
+
+  return ETH_OK;
 }
