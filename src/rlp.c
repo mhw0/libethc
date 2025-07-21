@@ -35,7 +35,7 @@
  */
 
 
-ETH_OP ethc_rlp_buffer_init(struct ethc_rlp_buffer **dest, char *rawbuf, size_t len) {
+ETH_OP ethc_rlp_buffer_init(struct ethc_rlp_buffer **dest, uint8_t *rawbuf, size_t len) {
   struct ethc_rlp_buffer *rlpbuf;
 
   rlpbuf = (struct ethc_rlp_buffer*)malloc(sizeof(struct ethc_rlp_buffer));
@@ -46,7 +46,7 @@ ETH_OP ethc_rlp_buffer_init(struct ethc_rlp_buffer **dest, char *rawbuf, size_t 
   // space to store rlp buffer data
   if (rawbuf == NULL) {
     len = ETHC_RLP_BUFFER_INIT_SIZE;
-    rawbuf = (char*)malloc(len);
+    rawbuf = (uint8_t*)malloc(len);
     if (rawbuf == NULL)
       return ETH_ERR_BUFFER_ALLOC;
   }
@@ -642,7 +642,7 @@ ETH_OP eth_rlp_to_bytes(uint8_t **bytes, size_t *len, struct eth_rlp *src) {
 ETH_OP eth_rlp_from_hex(struct eth_rlp *dest, char *hex, int len) {
   ETH_OP op;
   struct ethc_rlp_buffer *nbuf;
-  char *buf;
+  uint8_t *buf;
   int buflen;
 
   if (dest == NULL || hex == NULL)

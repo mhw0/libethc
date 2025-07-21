@@ -31,7 +31,7 @@ struct ethc_rlp_buffer {
   /* indicates where we are at */
   size_t offset;
   /* pointer to the raw buffer */
-  char *rawbuf;
+  uint8_t *rawbuf;
   /* raw buffer size */
   size_t len;
 };
