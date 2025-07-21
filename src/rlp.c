@@ -663,7 +663,7 @@ ETH_OP eth_rlp_from_hex(struct eth_rlp *dest, char *hex, int len) {
   return ETH_OK;
 }
 
-int eth_rlp_free(struct eth_rlp *dest) {
+ETH_OP eth_rlp_free(struct eth_rlp *dest) {
   if (dest == NULL)
     return ETH_ERR_INVALID_ARGS;
 
