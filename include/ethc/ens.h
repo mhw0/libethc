@@ -5,6 +5,7 @@
 extern "C" {
 #endif
 
+#include <stdint.h>
 #include "ethc-common.h"
 
 #define ETH_ENS_DELIMITER "."
