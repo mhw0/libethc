@@ -301,7 +301,7 @@ ETH_OP eth_abi_call(struct eth_abi *abi, char **func, int *len) {
     keccak[2] = *(ctype->rawbuf + ctype->offset++);
     keccak[3] = *(ctype->rawbuf + ctype->offset++);
 
-    snprintf(*func, ETH_ABI_FUNCTION_SELECTOR_SIZE + 1, "%02x%02x%02x%02x", keccak[0], keccak[1], keccak[2], keccak[3]);
+    snprintf(*func, 9, "%02x%02x%02x%02x", keccak[0], keccak[1], keccak[2], keccak[3]);
 
     if (len != NULL)
       *len = ETH_ABI_FUNCTION_SELECTOR_SIZE;
