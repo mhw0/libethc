@@ -1,3 +1,9 @@
 [submodule "libtap"]
 	path = libtap
 	url = https://github.com/mhw0/libtap
+[submodule "libtommath"]
+	path = libtommath
+	url = https://github.com/libtom/libtommath
+[submodule "secp256k1"]
+	path = secp256k1
+	url = https://github.com/bitcoin-core/secp256k1
