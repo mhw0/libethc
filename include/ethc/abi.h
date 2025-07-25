@@ -1,8 +1,6 @@
 #ifndef ETHC_ABI_H
 #define ETHC_ABI_H
 
-#include <gmp.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -157,7 +155,7 @@ ETHC_EXPORT ETH_OP eth_abi_uint64(struct eth_abi *abi, uint64_t *d);
  * @param[inout] mpz Initialized mpz_t to read/write the data from/to.
  * @return `1` on success, `-1` otherwise.
  */
-ETHC_EXPORT ETH_OP eth_abi_mpint(struct eth_abi *abi, mpz_t mpz);
+// ETHC_EXPORT ETH_OP eth_abi_mpint(struct eth_abi *abi, mpz_t mpz);
 
 /*!
  * @brief Encodes/decodes address.
