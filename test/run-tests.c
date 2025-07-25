@@ -43,6 +43,7 @@ int main() {
   test_eth_abi_bytes32();
   test_eth_abi_address();
   test_eth_abi_bytes();
+  test_eth_abi_mpint();
   test_eth_abi_array();
   test_eth_abi_call();
 

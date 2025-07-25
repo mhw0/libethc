@@ -245,36 +245,43 @@ void test_eth_abi_int64(void) {
   ok(d2 == -0x7cf23097b81adc30 && d3 == 0x45fd66a734b67d50, "encode -0x7cf23097b81adc30 and 0x45fd66a734b67d50");
 }
 
-// void test_eth_abi_mpint(void) {
-//   struct eth_abi abi0, abi1;
-//   size_t hexlen;
-//   char *hex;
-//   mpz_t mpz0, mpz1, mpz2;
-// 
-//   mpz_init_set_str(mpz0, "0xff", 0);
-//   mpz_init_set_str(mpz1, "0xfff", 0);
-//   mpz_init_set_str(mpz2, "0xbbffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", 0);
-// 
-//   ok(eth_abi_init(&abi0, ETH_ABI_ENCODE) == 1);
-//   ok(eth_abi_mpint(&abi0, mpz0) == 1);
-//   ok(eth_abi_mpint(&abi0, mpz1) == 1);
-//   ok(eth_abi_mpint(&abi0, mpz2) == 1);
-//   ok(eth_abi_to_hex(&abi0, &hex, &hexlen) == 1);
-// 
-//   is(hex, "00000000000000000000000000000000000000000000000000000000000000ff"
-//           "0000000000000000000000000000000000000000000000000000000000000fff"
-//           "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
-//   mpz_clears(mpz0, mpz1, mpz2, NULL);
-//   free(hex);
-// 
-//   ok(eth_abi_from_hex(&abi1,
-//         "0000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffff", -1) == 1);
-//   mpz_init_set_str(mpz0, "0x0000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffff", 0);
-//   mpz_init(mpz1);
-//   ok(eth_abi_mpint(&abi1, mpz1) == 1);
-//   ok(mpz_cmp(mpz0, mpz1) == 0);
-//   mpz_clears(mpz0, mpz1, NULL);
-// }
+void test_eth_abi_mpint(void) {
+  struct eth_abi abi0={0}, abi1={0};
+  mp_int int0, int1, int2, int3, int4;
+  size_t hexlen;
+  char *hex;
+
+  diag("eth_abi_mpint()");
+
+  assert(mp_init_multi(&int0, &int1, &int2, &int3, &int4, NULL) == MP_OKAY);
+
+  assert(mp_read_radix(&int0, "ff", 16) == MP_OKAY);
+  assert(mp_read_radix(&int1, "fff", 16) == MP_OKAY);
+  assert(mp_read_radix(&int2, "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", 16) == MP_OKAY);
+
+  assert(eth_abi_init(&abi0, ETH_ABI_ENCODE) == ETH_OK);
+
+  assert(eth_abi_mpint(&abi0, &int0) == ETH_OK);
+  assert(eth_abi_mpint(&abi0, &int1) == ETH_OK);
+  assert(eth_abi_mpint(&abi0, &int2) == ETH_OK);
+
+  assert(eth_abi_to_hex(&abi0, &hex, &hexlen) == ETH_OK);
+  is(hex, "00000000000000000000000000000000000000000000000000000000000000ff"
+          "0000000000000000000000000000000000000000000000000000000000000fff"
+          "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "encode 0xff, 0xfff, 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+  free(hex);
+
+
+  assert(eth_abi_from_hex(&abi1,
+        "0000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffff", -1) == ETH_OK);
+  assert(mp_read_radix(&int3, "0000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffff", 16) == ETH_OK);
+
+  assert(eth_abi_mpint(&abi1, &int4) == ETH_OK);
+
+  ok(mp_cmp(&int3, &int4) == MP_EQ, "decode 0x0000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+  mp_clear_multi(&int0, &int1, &int2, &int3, &int4, NULL);
+}
 
 void test_eth_abi_bytes8() {
   struct eth_abi abi0={0}, abi1={0};

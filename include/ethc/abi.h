@@ -8,6 +8,7 @@ extern "C" {
 #include "ethc-common.h"
 #include <stddef.h>
 #include <stdint.h>
+#include <tommath.h>
 
 #define ETH_ABI_WORD_SIZE 32
 #define ETH_ABI_DYNAMIC_TYPE_POOL_SIZE 64
@@ -155,7 +156,7 @@ ETHC_EXPORT ETH_OP eth_abi_uint64(struct eth_abi *abi, uint64_t *d);
  * @param[inout] mpz Initialized mpz_t to read/write the data from/to.
  * @return `1` on success, `-1` otherwise.
  */
-// ETHC_EXPORT ETH_OP eth_abi_mpint(struct eth_abi *abi, mpz_t mpz);
+ETHC_EXPORT ETH_OP eth_abi_mpint(struct eth_abi *abi, mp_int *mpint);
 
 /*!
  * @brief Encodes/decodes address.

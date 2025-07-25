@@ -704,6 +704,40 @@ ETH_OP eth_abi_bytes(struct eth_abi *abi, uint8_t *bytes, size_t *len) {
   return ETH_ERR_INVALID_ARGS;
 }
 
+ETH_OP eth_abi_mpint(struct eth_abi *abi, mp_int *mpint) {
+  struct ethc_abi_dynamic_type *ctype = NULL;
+  uint8_t buf[32] = {0}, size = 0;
+  ETH_OP op;
+
+  if (abi == NULL || mpint == NULL)
+    return ETH_ERR_INVALID_ARGS;
+
+  ethc_abi_type_stack_peek(&ctype, &abi->stack);
+
+  if (abi->m == ETH_ABI_ENCODE) {
+    size = mp_unsigned_bin_size(mpint);
+    if (size == 0 || size > 32)
+      return ETH_ERR_INVALID_ARGS;
+
+    if (mp_to_unsigned_bin(mpint, buf + (32 - size)) != MP_OKAY)
+      return ETH_ERR_UNKNOWN;
+
+    return eth_abi_bytes32(abi, buf);
+  }
+
+  if (abi->m == ETH_ABI_DECODE) {
+    if ((op = eth_abi_bytes32(abi, buf)) != ETH_OK)
+      return op;
+
+    if (mp_read_unsigned_bin(mpint, buf, 32) != MP_OKAY)
+      return ETH_ERR_INVALID_ARGS;
+
+    return ETH_OK;
+  }
+
+  return ETH_ERR_INVALID_ARGS;
+}
+
 ETH_OP eth_abi_from_hex(struct eth_abi *abi, char *hex, int len) {
   struct ethc_abi_dynamic_type *ntype = NULL;
   uint8_t *buf = NULL;
