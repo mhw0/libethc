@@ -1,7 +1,7 @@
 #include <KeccakHash.h>
 #include <ethc/keccak256.h>
 #include <stdlib.h>
-#include <gmp.h>
+#include <stdio.h>
 
 #define KECCAK256_RATE 1088
 #define KECCAK256_CAPACITY 512
@@ -26,22 +26,16 @@ int eth_keccak256(uint8_t *dest, const uint8_t *bytes, size_t len) {
 }
 
 int eth_keccak256p(uint8_t *dest, const uint8_t *bytes, size_t len) {
-  int size, r;
-  char *sig, *tmp;
+  char sig[len + 32];
+  int size;
 
   if (dest == NULL || bytes == NULL)
     return -1;
 
-  size = gmp_asprintf(&sig, "\x19" "Ethereum Signed Message:\n%llu", len);
-  tmp = realloc(sig, size + len);
-  if(tmp == NULL) {
-    free(sig);
-    return -1;
-  }
-  sig = tmp;
+  size = snprintf(sig, sizeof(sig), "\x19" "Ethereum Signed Message:\n%zu", len);
 
-  strncpy(sig + size, (char*)bytes, len);
-  r = eth_keccak256(dest, (uint8_t*)sig, size + len);
-  free(sig);
-  return r;
+  memcpy(sig + size, (char*)bytes, len);
+  size += len;
+
+  return eth_keccak256(dest, (uint8_t*)sig, size);
 }

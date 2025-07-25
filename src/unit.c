@@ -1,4 +1,3 @@
-#include <gmp.h>
 #include <ethc/unit.h>
 #include <ethc/unit.h>
 #include <string.h>
