@@ -33,24 +33,11 @@ jobs:
         run: |
           git submodule init
           git submodule update
-      - uses: actions/checkout@v2
-        with:
-          repository: bitcoin-core/secp256k1
-          path: libsecp256k1
-      - name: Build and install libsecp256k1
-        run: |
-          brew install libtool automake
-          cd libsecp256k1
-          ./autogen.sh
-          ./configure --enable-module-recovery --enable-benchmark=no --enable-tests=no
-          make
-          sudo make install
-          pkg-config --cflags --libs libsecp256k1
       - name: Build
         run: |
           mkdir build
           cd build
-          cmake -DETHC_BUILD_TESTS=ON ..
+          cmake -DETHC_BUILD_TESTS=ON -DETHC_TOMMATH_STATIC=ON -DETHC_SECP256K1_STATIC=ON ..
           make
           ls -lh
       - name: Test
@@ -67,23 +54,11 @@ jobs:
         run: |
           git submodule init
           git submodule update
-      - uses: actions/checkout@v2
-        with:
-          repository: bitcoin-core/secp256k1
-          path: libsecp256k1
-      - name: Build and install libsecp256k1
-        run: |
-          cd libsecp256k1
-          ./autogen.sh
-          ./configure --enable-module-recovery --enable-benchmark=no --enable-tests=no
-          make
-          sudo make install
-          pkg-config --cflags --libs libsecp256k1
       - name: Build
         run: |
           mkdir build
           cd build
-          cmake -DETHC_BUILD_TESTS=ON ..
+          cmake -DETHC_BUILD_TESTS=ON -DETHC_TOMMATH_STATIC=ON -DETHC_SECP256K1_STATIC=ON ..
           make
           ls -lh
       - name: Test
