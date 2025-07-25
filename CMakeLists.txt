@@ -25,6 +25,7 @@ SET(ETHC_SOURCE_FILES
     src/unit.c
     src/hex.c
     src/rlp.c
+    src/mp.c
     src/keccak256.c)
 
 SET(BUILD_SHARED_LIBS ON)

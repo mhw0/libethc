@@ -1,23 +1,33 @@
 #include "test.h"
 #include <tap.h>
 #include <ethc/unit.h>
+#include <ethc/mp.h>
+#include <string.h>
+#include <assert.h>
 
 void test_eth_unit_convert(void) {
-  char *r0, *r1, *r2, *r3 = NULL;
+  char *str0 = malloc(32), *str1 = malloc(32);
+  int decimals0 = 0, decimals1 = 0;
+  mp_int int0, int1, scale0, scale1;
 
-  ok(eth_unit_convert(&r0, "1", ETH_UNIT_ETHER, ETH_UNIT_WEI) == 1);
-  is(r0, "1000000000000000000");
-  free(r0);
+  diag("eth_unit_convert()");
 
-  ok(eth_unit_convert(&r1, "1", ETH_UNIT_WEI, ETH_UNIT_ETHER) == 1);
-  is(r1, "0.000000000000000001");
-  free(r1);
+  assert(mp_init_multi(&int0, &int1, &scale0, &scale1, NULL) == MP_OKAY);
 
-  ok(eth_unit_convert(&r2, "1000000000000000000", ETH_UNIT_WEI, ETH_UNIT_ETHER) == 1);
-  is(r2, "1");
-  free(r2);
+  assert(eth_mp_from_str(&int0, &scale0, "100", -1) == ETH_OK);
+  assert(eth_unit_convert(&int0, &decimals0, &int0, &scale0, ETH_UNIT_ETHER, ETH_UNIT_WEI) == ETH_OK);
+  assert(eth_mp_to_str(str0, &int0, decimals0) == ETH_OK);
 
-  ok(eth_unit_convert(&r3, "abc", ETH_UNIT_ETHER, ETH_UNIT_WEI) == -1);
-  is(r3, NULL);
-  free(r3);
+  is(str0, "100000000000000000000", "100 ETHER = 100,000,000,000,000,000,000 WEI");
+
+
+  assert(eth_mp_from_str(&int1, &scale1, "10000", -1) == ETH_OK);
+  assert(eth_unit_convert(&int1, &decimals1, &int1, &scale1, ETH_UNIT_WEI, ETH_UNIT_ETHER) == ETH_OK);
+  assert(eth_mp_to_str(str1, &int1, decimals1) == ETH_OK);
+
+  is(str1, "0.000000000000010000", "10,000 WEI = 0.000000000000010000 ETHER");
+
+  mp_clear_multi(&int0, &int1, &scale0, &scale1, NULL);
+  free(str0);
+  free(str1);
 }

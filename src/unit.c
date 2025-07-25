@@ -1,31 +1,49 @@
 #include <gmp.h>
 #include <ethc/unit.h>
+#include <ethc/unit.h>
+#include <string.h>
 
-int eth_unit_convert(char **dest, const char *amount, const char *from, const char *to) {
-  mpf_t j, k, l;
-  char *buf, *fmt;
+ETH_OP eth_unit_convert(mp_int *dest, int *decimals, mp_int *amount, mp_int *scale, const char *from, const char *to) {
+  mp_int fromint, toint, tmpint;
 
   if (dest == NULL || amount == NULL || from == NULL || to == NULL)
-    return -1;
+    return ETH_ERR_INVALID_ARGS;
 
-  if (mpf_init_set_str(j, amount, 10) == -1) {
-    mpf_clear(j);
-    return -1;
+  if (mp_init_multi(&fromint, &toint, &tmpint, NULL) != MP_OKAY)
+    return ETH_ERR_UNKNOWN;
+
+  if (mp_read_radix(&fromint, from, 10) != MP_OKAY)
+    return ETH_ERR_UNKNOWN;
+
+  if (mp_read_radix(&toint, to, 10) != MP_OKAY)
+    return ETH_ERR_UNKNOWN;
+
+  // if "from unit" is less than "to unit", scale the numberator by 10^18
+  if (mp_cmp(&fromint, &toint) == MP_LT) {
+    if (mp_read_radix(&tmpint, "1000000000000000000", 10) != MP_OKAY)
+      return ETH_ERR_UNKNOWN;
+
+    if (mp_mul(amount, &tmpint, amount) != MP_OKAY)
+      return ETH_ERR_UNKNOWN;
+
+    *decimals = 18;
+  } else {
+    *decimals = 0;
   }
 
-  mpf_init_set_str(k, from, 10);
-  mpf_init_set_str(l, to, 10);
+  // calculate the K = (amount * from multiplier)
+  if (mp_mul(amount, &fromint, dest) != MP_OKAY)
+    return ETH_ERR_UNKNOWN;
 
-  mpf_mul(j, j, k);
-  mpf_div(j, j, l);
+  // calculate the L = (to multiplier * scale factor)
+  if (mp_mul(scale, &toint, &tmpint) != MP_OKAY)
+    return ETH_ERR_UNKNOWN;
 
-  fmt = mpf_integer_p(j) ? "%F.0f" : "%F.18f";
-  if (gmp_asprintf(&buf, fmt, j) == -1) {
-    mpf_clears(j, k, l, NULL);
-    return -1;
-  }
+  // calculate K / L
+  if (mp_div(dest, &tmpint, dest, NULL) != MP_OKAY)
+    return ETH_ERR_UNKNOWN;
 
-  mpf_clears(j, k, l, NULL);
-  *dest = buf;
-  return 1;
+  mp_clear_multi(&fromint, &toint, &tmpint, NULL);
+
+  return ETH_OK;
 }
