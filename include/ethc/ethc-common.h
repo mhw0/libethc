@@ -13,6 +13,7 @@ enum eth_op {
   ETH_OK               = 0,
   ETH_ERR_BUFFER_ALLOC = -1,
   ETH_ERR_INVALID_ARGS = -2,
+  ETH_ERR_MP           = -3,
 
   ETH_ERR_UNKNOWN      = -64,
 };

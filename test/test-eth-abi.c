@@ -224,7 +224,7 @@ void test_eth_abi_int64(void) {
   size_t hexlen;
   char *hex;
 
-  diag("eth_abi_int32()");
+  diag("eth_abi_int64()");
 
   assert(eth_abi_init(&abi0, ETH_ABI_ENCODE) == ETH_OK);
   assert(eth_abi_int64(&abi0, &d0) == ETH_OK);
@@ -242,7 +242,7 @@ void test_eth_abi_int64(void) {
   assert(eth_abi_int64(&abi1, &d2) == ETH_OK);
   assert(eth_abi_int64(&abi1, &d3) == ETH_OK);
 
-  ok(d2 == -0x7cf23097b81adc30 && d3 == 0x45fd66a734b67d50, "encode -0x7cf23097b81adc30 and 0x45fd66a734b67d50");
+  ok(d2 == -0x7cf23097b81adc30 && d3 == 0x45fd66a734b67d50, "decode -0x7cf23097b81adc30 and 0x45fd66a734b67d50");
 }
 
 void test_eth_abi_mpint(void) {
@@ -256,7 +256,7 @@ void test_eth_abi_mpint(void) {
   assert(mp_init_multi(&int0, &int1, &int2, &int3, &int4, NULL) == MP_OKAY);
 
   assert(mp_read_radix(&int0, "ff", 16) == MP_OKAY);
-  assert(mp_read_radix(&int1, "fff", 16) == MP_OKAY);
+  assert(mp_read_radix(&int1, "-256", 10) == MP_OKAY);
   assert(mp_read_radix(&int2, "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", 16) == MP_OKAY);
 
   assert(eth_abi_init(&abi0, ETH_ABI_ENCODE) == ETH_OK);
@@ -267,19 +267,19 @@ void test_eth_abi_mpint(void) {
 
   assert(eth_abi_to_hex(&abi0, &hex, &hexlen) == ETH_OK);
   is(hex, "00000000000000000000000000000000000000000000000000000000000000ff"
-          "0000000000000000000000000000000000000000000000000000000000000fff"
+          "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00"
           "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-          "encode 0xff, 0xfff, 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+          "encode 0xff, -256, 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
   free(hex);
 
-
   assert(eth_abi_from_hex(&abi1,
-        "0000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffff", -1) == ETH_OK);
-  assert(mp_read_radix(&int3, "0000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffff", 16) == ETH_OK);
+        "ffffffffffffffffffffffffffffffffffffffffffffffff830dcf6847e523d0", -1) == ETH_OK);
+  assert(mp_read_radix(&int3, "-9003312033254005808", 10) == ETH_OK);
 
   assert(eth_abi_mpint(&abi1, &int4) == ETH_OK);
 
-  ok(mp_cmp(&int3, &int4) == MP_EQ, "decode 0x0000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+  ok(mp_cmp(&int3, &int4) == MP_EQ, "decode -9003312033254005808");
+
   mp_clear_multi(&int0, &int1, &int2, &int3, &int4, NULL);
 }
 

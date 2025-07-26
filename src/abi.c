@@ -707,6 +707,7 @@ ETH_OP eth_abi_bytes(struct eth_abi *abi, uint8_t *bytes, size_t *len) {
 ETH_OP eth_abi_mpint(struct eth_abi *abi, mp_int *mpint) {
   struct ethc_abi_dynamic_type *ctype = NULL;
   uint8_t buf[32] = {0}, size = 0;
+  mp_int pow256, tmpint;
   ETH_OP op;
 
   if (abi == NULL || mpint == NULL)
@@ -715,13 +716,46 @@ ETH_OP eth_abi_mpint(struct eth_abi *abi, mp_int *mpint) {
   ethc_abi_type_stack_peek(&ctype, &abi->stack);
 
   if (abi->m == ETH_ABI_ENCODE) {
-    size = mp_ubin_size(mpint);
-    if (size == 0 || size > 32)
+    if (mp_init(&tmpint) != MP_OKAY)
+      return ETH_ERR_MP;
+
+    if (mp_copy(mpint, &tmpint) != MP_OKAY)
+      return ETH_ERR_MP;
+
+    // if the mpint is a negative number
+    if (mp_cmp_d(&tmpint, 0) == MP_LT) {
+      if (mp_init(&pow256) != MP_OKAY) {
+        mp_clear(&tmpint);
+        return ETH_ERR_MP;
+      }
+
+      if (mp_2expt(&pow256, 256) != MP_OKAY) {
+        mp_clear_multi(&tmpint, &pow256, NULL);
+        return ETH_ERR_MP;
+      }
+
+      if (mp_add(&tmpint, &pow256, &tmpint) != MP_OKAY) {
+        mp_clear_multi(&tmpint, &pow256, NULL);
+        return ETH_ERR_MP;
+      }
+    }
+
+    // do not accept integers that consume more than 32 bytes
+    // TODO(mhw0): clear the pow256 if this fails
+    size = mp_ubin_size(&tmpint);
+    if (size == 0 || size > 32) {
+      mp_clear(&tmpint);
       return ETH_ERR_INVALID_ARGS;
+    }
 
-    if (mp_to_ubin(mpint, buf + (32 - size), 32, NULL) != MP_OKAY)
-      return ETH_ERR_UNKNOWN;
+    // TODO(mhw0): clear the pow256 if this fails
+    if (mp_to_ubin(&tmpint, buf + (32 - size), 32, NULL) != MP_OKAY) {
+      mp_clear(&tmpint);
+      return ETH_ERR_MP;
+    }
 
+    // TODO(mhw0): clear the pow256 if this fails
+    mp_clear(&tmpint);
     return eth_abi_bytes32(abi, buf);
   }
 
@@ -730,7 +764,26 @@ ETH_OP eth_abi_mpint(struct eth_abi *abi, mp_int *mpint) {
       return op;
 
     if (mp_from_ubin(mpint, buf, 32) != MP_OKAY)
-      return ETH_ERR_INVALID_ARGS;
+      return ETH_ERR_MP;
+
+    // if the most significant bit is set (is negative)
+    if (s_mp_get_bit(mpint, 0xff) == MP_YES) {
+      if (mp_init(&pow256) != MP_OKAY)
+        return ETH_ERR_MP;
+
+      if (mp_2expt(&pow256, 256) != MP_OKAY) {
+        mp_clear(&pow256);
+        return ETH_ERR_MP;
+      }
+
+      if (mp_sub(mpint, &pow256, mpint) != MP_OKAY) {
+        mp_clear(&pow256);
+        return ETH_ERR_MP;
+      }
+
+      mp_clear(&pow256);
+      return ETH_OK;
+    }
 
     return ETH_OK;
   }

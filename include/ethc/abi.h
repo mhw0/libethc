@@ -16,6 +16,8 @@ extern "C" {
 #define ETH_ABI_DYNAMIC_TYPES 64
 #define ETH_ABI_FUNCTION_SELECTOR_SIZE 4
 
+int s_mp_get_bit(const mp_int *a, int b);
+
 // ABI mode (encoding or decoding)
 enum eth_abi_mode {
   ETH_ABI_ENCODE = 0,
