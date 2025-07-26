@@ -715,11 +715,11 @@ ETH_OP eth_abi_mpint(struct eth_abi *abi, mp_int *mpint) {
   ethc_abi_type_stack_peek(&ctype, &abi->stack);
 
   if (abi->m == ETH_ABI_ENCODE) {
-    size = mp_unsigned_bin_size(mpint);
+    size = mp_ubin_size(mpint);
     if (size == 0 || size > 32)
       return ETH_ERR_INVALID_ARGS;
 
-    if (mp_to_unsigned_bin(mpint, buf + (32 - size)) != MP_OKAY)
+    if (mp_to_ubin(mpint, buf + (32 - size), 32, NULL) != MP_OKAY)
       return ETH_ERR_UNKNOWN;
 
     return eth_abi_bytes32(abi, buf);
@@ -729,7 +729,7 @@ ETH_OP eth_abi_mpint(struct eth_abi *abi, mp_int *mpint) {
     if ((op = eth_abi_bytes32(abi, buf)) != ETH_OK)
       return op;
 
-    if (mp_read_unsigned_bin(mpint, buf, 32) != MP_OKAY)
+    if (mp_from_ubin(mpint, buf, 32) != MP_OKAY)
       return ETH_ERR_INVALID_ARGS;
 
     return ETH_OK;
