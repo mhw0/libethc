@@ -707,7 +707,7 @@ ETH_OP eth_abi_bytes(struct eth_abi *abi, uint8_t *bytes, size_t *len) {
 ETH_OP eth_abi_mpint(struct eth_abi *abi, mp_int *mpint) {
   struct ethc_abi_dynamic_type *ctype = NULL;
   uint8_t buf[32] = {0}, size = 0;
-  mp_int pow256, tmpint;
+  mp_int mask, tmpint;
   ETH_OP op;
 
   if (abi == NULL || mpint == NULL)
@@ -724,18 +724,18 @@ ETH_OP eth_abi_mpint(struct eth_abi *abi, mp_int *mpint) {
 
     // if the mpint is a negative number
     if (mp_cmp_d(&tmpint, 0) == MP_LT) {
-      if (mp_init(&pow256) != MP_OKAY) {
+      if (mp_init(&mask) != MP_OKAY) {
         mp_clear(&tmpint);
         return ETH_ERR_MP;
       }
 
-      if (mp_2expt(&pow256, 256) != MP_OKAY) {
-        mp_clear_multi(&tmpint, &pow256, NULL);
+      if (mp_2expt(&mask, 256) != MP_OKAY) {
+        mp_clear_multi(&tmpint, &mask, NULL);
         return ETH_ERR_MP;
       }
 
-      if (mp_add(&tmpint, &pow256, &tmpint) != MP_OKAY) {
-        mp_clear_multi(&tmpint, &pow256, NULL);
+      if (mp_add(&tmpint, &mask, &tmpint) != MP_OKAY) {
+        mp_clear_multi(&tmpint, &mask, NULL);
         return ETH_ERR_MP;
       }
     }
@@ -767,21 +767,21 @@ ETH_OP eth_abi_mpint(struct eth_abi *abi, mp_int *mpint) {
       return ETH_ERR_MP;
 
     // if the most significant bit is set (is negative)
-    if (s_mp_get_bit(mpint, 0xff) == MP_YES) {
-      if (mp_init(&pow256) != MP_OKAY)
+    if (buf[0] & 0x80) {
+      if (mp_init(&mask) != MP_OKAY)
         return ETH_ERR_MP;
 
-      if (mp_2expt(&pow256, 256) != MP_OKAY) {
-        mp_clear(&pow256);
-        return ETH_ERR_MP;
-      }
-
-      if (mp_sub(mpint, &pow256, mpint) != MP_OKAY) {
-        mp_clear(&pow256);
+      if (mp_2expt(&mask, 256) != MP_OKAY) {
+        mp_clear(&mask);
         return ETH_ERR_MP;
       }
 
-      mp_clear(&pow256);
+      if (mp_sub(mpint, &mask, mpint) != MP_OKAY) {
+        mp_clear(&mask);
+        return ETH_ERR_MP;
+      }
+
+      mp_clear(&mask);
       return ETH_OK;
     }
 

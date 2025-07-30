@@ -247,13 +247,13 @@ void test_eth_abi_int64(void) {
 
 void test_eth_abi_mpint(void) {
   struct eth_abi abi0={0}, abi1={0};
-  mp_int int0, int1, int2, int3, int4;
+  mp_int int0, int1, int2, int3, int4, int5, int6;
   size_t hexlen;
   char *hex;
 
   diag("eth_abi_mpint()");
 
-  assert(mp_init_multi(&int0, &int1, &int2, &int3, &int4, NULL) == MP_OKAY);
+  assert(mp_init_multi(&int0, &int1, &int2, &int3, &int4, &int5, &int6, NULL) == MP_OKAY);
 
   assert(mp_read_radix(&int0, "ff", 16) == MP_OKAY);
   assert(mp_read_radix(&int1, "-256", 10) == MP_OKAY);
@@ -273,14 +273,19 @@ void test_eth_abi_mpint(void) {
   free(hex);
 
   assert(eth_abi_from_hex(&abi1,
-        "ffffffffffffffffffffffffffffffffffffffffffffffff830dcf6847e523d0", -1) == ETH_OK);
-  assert(mp_read_radix(&int3, "-9003312033254005808", 10) == ETH_OK);
+        "fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff8dc56"
+        "0000000000000000000000000000000000000000000000000000000001f9b628", -1) == ETH_OK);
 
+  assert(eth_abi_mpint(&abi1, &int3) == ETH_OK);
   assert(eth_abi_mpint(&abi1, &int4) == ETH_OK);
 
-  ok(mp_cmp(&int3, &int4) == MP_EQ, "decode -9003312033254005808");
+  assert(mp_read_radix(&int5, "-467882", 10) == MP_OKAY);
+  assert(mp_read_radix(&int6, "33142312", 10) == MP_OKAY);
 
-  mp_clear_multi(&int0, &int1, &int2, &int3, &int4, NULL);
+  ok(mp_cmp(&int3, &int5) == MP_EQ, "decode -467882");
+  ok(mp_cmp(&int4, &int6) == MP_EQ, "decode 33142312");
+
+  mp_clear_multi(&int0, &int1, &int2, &int3, &int4, &int5, &int6, NULL);
 }
 
 void test_eth_abi_bytes8() {
