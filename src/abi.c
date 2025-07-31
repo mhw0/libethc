@@ -125,6 +125,10 @@ ETH_OP eth_abi_array(struct eth_abi *abi, size_t *len) {
     ethc_abi_buffer_padded_read64(typeoffset, ctype, ctype->offset);
     ctype->offset += ETH_ABI_WORD_SIZE;
 
+    // if the function selector is set, move the offset
+    if ((ctype->offset % ETH_ABI_WORD_SIZE) != 0)
+      typeoffset += ETH_ABI_FUNCTION_SELECTOR_SIZE;
+
     // read the length of the type
     ethc_abi_buffer_padded_read64(typelen, ctype, typeoffset);
     typeoffset += ETH_ABI_WORD_SIZE;
