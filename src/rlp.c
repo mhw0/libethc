@@ -580,7 +580,7 @@ ETH_OP eth_rlp_address(struct eth_rlp *rlp, char **addr) {
     if ((op = eth_rlp_bytes(rlp, &buf, &hsize)) != ETH_OK)
       return op;
 
-    if (hsize == 0 && buf[0] == 0x0) {
+    if (hsize == 0) {
       *addr = strdup("");
       free(buf);
       return ETH_OK;
