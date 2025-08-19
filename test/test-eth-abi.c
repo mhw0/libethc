@@ -592,7 +592,6 @@ void test_eth_abi_call(void) {
 
   free(fn1);
 };
-#include <string.h>
 
 void test_eth_abi_other_case_0(void) {
   struct eth_abi abi0={0}, abi1={0};
