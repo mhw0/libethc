@@ -38,14 +38,16 @@ int main() {
   test_eth_abi_int16();
   test_eth_abi_int32();
   test_eth_abi_int64();
+  test_eth_abi_mpint();
   test_eth_abi_bytes8();
   test_eth_abi_bytes16();
   test_eth_abi_bytes32();
-  test_eth_abi_address();
   test_eth_abi_bytes();
-  test_eth_abi_mpint();
+  test_eth_abi_address();
   test_eth_abi_array();
+  test_eth_abi_tuple();
   test_eth_abi_call();
+  test_eth_abi_other_case_0();
 
   test_eth_rlp_uint8();
   test_eth_rlp_uint16();

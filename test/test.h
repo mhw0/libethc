@@ -37,6 +37,8 @@ void test_eth_abi_bytes16(void);
 void test_eth_abi_bytes32(void);
 void test_eth_abi_bytes(void);
 void test_eth_abi_array(void);
+void test_eth_abi_tuple(void);
+void test_eth_abi_other_case_0(void);
 
 void test_eth_unit_convert(void);
 

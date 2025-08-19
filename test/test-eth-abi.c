@@ -3,6 +3,25 @@
 #include <tap.h>
 #include <assert.h>
 
+void print_formatted_hex(const char *hex_str, size_t len) {
+  size_t bytes = len / 2; // 2 hex characters per byte
+  size_t address = 0;
+
+  for (size_t i = 0; i < bytes; ++i) {
+    if (i % 32 == 0) {
+      if (i != 0) printf("\n");
+
+      printf("0x%02X: ", (unsigned int)address);
+      address += 0x20;
+    }
+
+    // Print two characters (one byte)
+    printf("%c%c", hex_str[i * 2], hex_str[i * 2 + 1]);
+  }
+
+  printf("\n");
+}
+
 void test_eth_abi_bool(void) {
   struct eth_abi abi0={0}, abi1={0};
   uint8_t b0=1, b1=0, b2, b3;
@@ -190,7 +209,6 @@ void test_eth_abi_int16(void) {
 
   ok(d2 == -0x400 && d3 == 0x400, "decode -0x400 and 0x400");
 }
-
 void test_eth_abi_int32(void) {
   struct eth_abi abi0={0}, abi1={0};
   int32_t d0=-0x784053b0, d1=0x3ca589b0, d2, d3;
@@ -368,32 +386,6 @@ void test_eth_abi_bytes32() {
       "0x98, 0x5d, 0x9c, 0xe6, 0x99, 0xc0, 0x31, 0xc3");
 }
 
-void test_eth_abi_address(void) {
-  struct eth_abi abi0={0}, abi1={0};
-  char *addr0 = "0x415F71C759868930B12243fBb0fb0feA4AA4435b",
-       *addr1 = "1aecd309e0a30d8d36ebac07f97ed3cbc7ac1b53",
-       *addr2, *hex;
-  size_t hexlen;
-
-  diag("eth_abi_address()");
-
-  assert(eth_abi_init(&abi0, ETH_ABI_ENCODE) == ETH_OK);
-  assert(eth_abi_address(&abi0, &addr0) == ETH_OK);
-  assert(eth_abi_to_hex(&abi0, &hex, &hexlen) == ETH_OK);
-
-  is(hex, "000000000000000000000000415f71c759868930b12243fbb0fb0fea4aa4435b",
-        "encode 0x415F71C759868930B12243fBb0fb0feA4AA4435b");
-  free(hex);
-
-  assert(eth_abi_from_hex(&abi1,
-        "0000000000000000000000001aecd309e0a30d8d36ebac07f97ed3cbc7ac1b53", -1) == ETH_OK);
-  assert(eth_abi_address(&abi1, &addr2) == ETH_OK);
-
-  cmp_mem(addr1, addr2, 40, "decode 0x1aecd309e0a30d8d36ebac07f97ed3cbc7ac1b53");
-
-  free(addr2);
-};
-
 void test_eth_abi_bytes(void) {
   struct eth_abi abi0={0}, abi1={0};
   uint8_t data0[] = {0x77, 0x23, 0xe4, 0x8a},
@@ -424,6 +416,30 @@ void test_eth_abi_bytes(void) {
   assert(eth_abi_bytes(&abi1, data1, &datalen) == ETH_OK);
 
   cmp_mem(data1, data0, datalen, "decode 0x77, 0x23, 0xe4, 0x8a");
+};
+
+void test_eth_abi_address(void) {
+  struct eth_abi abi0={0}, abi1={0};
+  char *addr0 = "0x415F71C759868930B12243fBb0fb0feA4AA4435b",
+       *addr1 = "1aecd309e0a30d8d36ebac07f97ed3cbc7ac1b53",
+       addr2[41], *hex;
+  size_t hexlen;
+
+  diag("eth_abi_address()");
+
+  assert(eth_abi_init(&abi0, ETH_ABI_ENCODE) == ETH_OK);
+  assert(eth_abi_address(&abi0, addr0) == ETH_OK);
+  assert(eth_abi_to_hex(&abi0, &hex, &hexlen) == ETH_OK);
+
+  is(hex, "000000000000000000000000415f71c759868930b12243fbb0fb0fea4aa4435b",
+        "encode 0x415F71C759868930B12243fBb0fb0feA4AA4435b");
+  free(hex);
+
+  assert(eth_abi_from_hex(&abi1,
+        "0000000000000000000000001aecd309e0a30d8d36ebac07f97ed3cbc7ac1b53", -1) == ETH_OK);
+  assert(eth_abi_address(&abi1, addr2) == ETH_OK);
+
+  is(addr2, addr1, "decode 0x1aecd309e0a30d8d36ebac07f97ed3cbc7ac1b53");
 };
 
 void test_eth_abi_array(void) {
@@ -479,9 +495,63 @@ void test_eth_abi_array(void) {
   assert(eth_abi_array_end(&abi1) == ETH_OK);
 
   ok(len0 == 2, "decoded outer array has 2 elements");
-  ok(len1 == 1 && d1 == 0xff, "decoded first inner array has 1 element and it is0xff");
+  ok(len1 == 1 && d1 == 0xff, "decoded first inner array has 1 element and it is 0xff");
   ok(len2 == 1 && d2 == 0xab, "decoded second inner array has 1 element and it is 0xab");
 };
+
+void test_eth_abi_tuple(void) {
+  struct eth_abi abi0={0}, abi1={0};
+  uint8_t d0 = 0xab, d1, d2, d3;
+  size_t hexlen, i = 0, len0 = 0, len1 = 0;
+  char *hex = NULL;
+
+  diag("encode/decode tuple");
+
+  assert(eth_abi_init(&abi0, ETH_ABI_ENCODE) == ETH_OK);
+
+  assert(eth_abi_uint8(&abi0, &d0) == ETH_OK);
+  assert(eth_abi_array(&abi0, NULL) == ETH_OK);     //   [
+    assert(eth_abi_array(&abi0, NULL) == ETH_OK);   //     [
+      assert(eth_abi_uint8(&abi0, &d0) == ETH_OK);  //       0xab
+    assert(eth_abi_array_end(&abi0) == ETH_OK);     //     ],
+    assert(eth_abi_uint8(&abi0, &d0) == ETH_OK);    //     0xab,
+  assert(eth_abi_array_end(&abi0) == ETH_OK);       //   ]
+
+  assert(eth_abi_to_hex(&abi0, &hex, &hexlen) == ETH_OK);
+
+  is(hex,
+    "00000000000000000000000000000000000000000000000000000000000000ab"
+    "0000000000000000000000000000000000000000000000000000000000000040"
+    "0000000000000000000000000000000000000000000000000000000000000002"
+    "0000000000000000000000000000000000000000000000000000000000000040"
+    "00000000000000000000000000000000000000000000000000000000000000ab"
+    "0000000000000000000000000000000000000000000000000000000000000001"
+    "00000000000000000000000000000000000000000000000000000000000000ab" , "encode 0xab, [[0xab], 0xab]");
+  free(hex);
+
+  assert(eth_abi_from_hex(&abi1,
+    "0000000000000000000000000000000000000000000000000000000000000040"
+    "0000000000000000000000000000000000000000000000000000000000000020"
+    "0000000000000000000000000000000000000000000000000000000000000002"
+    "0000000000000000000000000000000000000000000000000000000000000040"
+    "00000000000000000000000000000000000000000000000000000000000000aa"
+    "0000000000000000000000000000000000000000000000000000000000000001"
+    "00000000000000000000000000000000000000000000000000000000000000aa", -1) == ETH_OK);
+
+  assert(eth_abi_array(&abi1, &len0) == ETH_OK);
+    assert(eth_abi_array(&abi1, &len1) == ETH_OK);
+      assert(eth_abi_uint8(&abi1, &d1) == ETH_OK);
+    assert(eth_abi_array_end(&abi1) == ETH_OK);
+    assert(eth_abi_uint8(&abi1, &d2) == ETH_OK);
+  assert(eth_abi_array_end(&abi1) == ETH_OK);
+  assert(eth_abi_uint8(&abi1, &d3) == ETH_OK);
+
+  pass("decode [[0xaa], 0xaa], 0x20");
+  ok(len0 == 2, "decoded outer array has 2 elements");
+  ok(len1 == 1 && d1 == 0xaa, "decoded first inner array has 1 element and it is 0xaa");
+  ok(d2 == 0xaa, "decoded second element is 0xaa");
+  ok(d3 == 0x20, "decoded second element is 0x20");
+}
 
 void test_eth_abi_call(void) {
   struct eth_abi abi0={0}, abi1={0};
@@ -522,3 +592,132 @@ void test_eth_abi_call(void) {
 
   free(fn1);
 };
+#include <string.h>
+
+void test_eth_abi_other_case_0(void) {
+  struct eth_abi abi0={0}, abi1={0};
+  char *hex = NULL;
+  size_t tuple0len = 2, hexlen = 0;
+  uint8_t uint0 = 8;
+
+  char addr0[] = "e6b4903642b4a1637d7b411d009af5c91617860c", addr9[41];
+  char addr1[] = "12d59b7849989f677a2d67fcf21b3d2e28291da6", addr10[41];
+  char addr2[] = "2c7fe80e727408751b086d5e2f257ab20cd97f69", addr11[41];
+  char addr3[] = "68f940fb79e216faafbc96a6701b11b44f5255c2", addr12[41];
+  char addr4[] = "8da0d9418e74c8523cc189be07589a788a1c49e7", addr13[41];
+  char addr5[] = "e3b3aa98faa70bf098ea5e75e11193de95ab7cda", addr14[41];
+  char addr6[] = "9950c1f3754fb8a3ebbaf24b8573cafc7474c00f", addr15[41];
+  char addr7[] = "afecdd2fc04f0939d7b6835529677608470c063d", addr16[41];
+  char addr8[] = "c4081a370585681e265ec9efb84143549469e77e", addr17[41];
+  uint8_t int0 = 1, int9;
+  uint8_t int1 = 0, int10;
+  uint8_t int2 = 0, int11;
+  uint8_t int3 = 1, int12;
+  uint8_t int4 = 0, int13;
+  uint8_t int5 = 0, int14;
+  uint8_t int6 = 1, int15;
+  uint8_t int7 = 1, int16;
+  uint8_t int8 = 0, int17;
+
+  diag("encode/decode getPoolInfoBatchAsString(address[],uint8[])");
+
+  assert(eth_abi_init(&abi0, ETH_ABI_ENCODE) == ETH_OK);
+
+  assert(eth_abi_array(&abi0, NULL) == ETH_OK);
+    eth_abi_address(&abi0, addr0);
+    eth_abi_address(&abi0, addr1);
+    eth_abi_address(&abi0, addr2);
+    eth_abi_address(&abi0, addr3);
+    eth_abi_address(&abi0, addr4);
+    eth_abi_address(&abi0, addr5);
+    eth_abi_address(&abi0, addr6);
+    eth_abi_address(&abi0, addr7);
+    eth_abi_address(&abi0, addr8);
+  assert(eth_abi_array_end(&abi0) == ETH_OK);
+
+  assert(eth_abi_array(&abi0, NULL) == ETH_OK);
+    eth_abi_uint8(&abi0, &int0);
+    eth_abi_uint8(&abi0, &int1);
+    eth_abi_uint8(&abi0, &int2);
+    eth_abi_uint8(&abi0, &int3);
+    eth_abi_uint8(&abi0, &int4);
+    eth_abi_uint8(&abi0, &int5);
+    eth_abi_uint8(&abi0, &int6);
+    eth_abi_uint8(&abi0, &int7);
+    eth_abi_uint8(&abi0, &int8);
+  assert(eth_abi_array_end(&abi0) == ETH_OK);
+
+  assert(eth_abi_to_hex(&abi0, &hex, &hexlen) == ETH_OK);
+
+  is(hex,
+    "0000000000000000000000000000000000000000000000000000000000000040"
+    "0000000000000000000000000000000000000000000000000000000000000180"
+    "0000000000000000000000000000000000000000000000000000000000000009"
+    "000000000000000000000000e6b4903642b4a1637d7b411d009af5c91617860c"
+    "00000000000000000000000012d59b7849989f677a2d67fcf21b3d2e28291da6"
+    "0000000000000000000000002c7fe80e727408751b086d5e2f257ab20cd97f69"
+    "00000000000000000000000068f940fb79e216faafbc96a6701b11b44f5255c2"
+    "0000000000000000000000008da0d9418e74c8523cc189be07589a788a1c49e7"
+    "000000000000000000000000e3b3aa98faa70bf098ea5e75e11193de95ab7cda"
+    "0000000000000000000000009950c1f3754fb8a3ebbaf24b8573cafc7474c00f"
+    "000000000000000000000000afecdd2fc04f0939d7b6835529677608470c063d"
+    "000000000000000000000000c4081a370585681e265ec9efb84143549469e77e"
+    "0000000000000000000000000000000000000000000000000000000000000009"
+    "0000000000000000000000000000000000000000000000000000000000000001"
+    "0000000000000000000000000000000000000000000000000000000000000000"
+    "0000000000000000000000000000000000000000000000000000000000000000"
+    "0000000000000000000000000000000000000000000000000000000000000001"
+    "0000000000000000000000000000000000000000000000000000000000000000"
+    "0000000000000000000000000000000000000000000000000000000000000000"
+    "0000000000000000000000000000000000000000000000000000000000000001"
+    "0000000000000000000000000000000000000000000000000000000000000001"
+    "0000000000000000000000000000000000000000000000000000000000000000", "encode");
+
+  assert(eth_abi_from_hex(&abi1, hex, -1) == ETH_OK);
+
+  assert(eth_abi_array(&abi1, NULL) == ETH_OK);
+    eth_abi_address(&abi1, addr9);
+    eth_abi_address(&abi1, addr10);
+    eth_abi_address(&abi1, addr11);
+    eth_abi_address(&abi1, addr12);
+    eth_abi_address(&abi1, addr13);
+    eth_abi_address(&abi1, addr14);
+    eth_abi_address(&abi1, addr15);
+    eth_abi_address(&abi1, addr16);
+    eth_abi_address(&abi1, addr17);
+  assert(eth_abi_array_end(&abi1) == ETH_OK);
+
+  assert(eth_abi_array(&abi1, NULL) == ETH_OK);
+    eth_abi_uint8(&abi1, &int9);
+    eth_abi_uint8(&abi1, &int10);
+    eth_abi_uint8(&abi1, &int11);
+    eth_abi_uint8(&abi1, &int12);
+    eth_abi_uint8(&abi1, &int13);
+    eth_abi_uint8(&abi1, &int14);
+    eth_abi_uint8(&abi1, &int15);
+    eth_abi_uint8(&abi1, &int16);
+    eth_abi_uint8(&abi1, &int17);
+  assert(eth_abi_array_end(&abi1) == ETH_OK);
+
+  is(addr9, addr0, "decode e6b4903642b4a1637d7b411d009af5c91617860c");
+  is(addr10, addr1, "decode 12d59b7849989f677a2d67fcf21b3d2e28291da6");
+  is(addr11, addr2, "decode 2c7fe80e727408751b086d5e2f257ab20cd97f69");
+  is(addr12, addr3, "decode 68f940fb79e216faafbc96a6701b11b44f5255c2");
+  is(addr13, addr4, "decode 8da0d9418e74c8523cc189be07589a788a1c49e7");
+  is(addr14, addr5, "decode e3b3aa98faa70bf098ea5e75e11193de95ab7cda");
+  is(addr15, addr6, "decode 9950c1f3754fb8a3ebbaf24b8573cafc7474c00f");
+  is(addr16, addr7, "decode afecdd2fc04f0939d7b6835529677608470c063d");
+  is(addr17, addr8, "decode c4081a370585681e265ec9efb84143549469e77e");
+
+  ok(int9 == int0, "decode 1");
+  ok(int10 == int1, "decode 0");
+  ok(int11 == int2, "decode 0");
+  ok(int12 == int3, "decode 1");
+  ok(int13 == int4, "decode 0");
+  ok(int14 == int5, "decode 0");
+  ok(int15 == int6, "decode 1");
+  ok(int16 == int7, "decode 1");
+  ok(int17 == int8, "decode 0");
+
+  free(hex);
+}

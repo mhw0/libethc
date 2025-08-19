@@ -11,54 +11,59 @@ extern "C" {
 #include <tommath.h>
 
 #define ETH_ABI_WORD_SIZE 32
-#define ETH_ABI_DYNAMIC_TYPE_POOL_SIZE 64
-#define ETH_ABI_DYNAMIC_TYPE_WORDS 64
-#define ETH_ABI_DYNAMIC_TYPES 64
 #define ETH_ABI_FUNCTION_SELECTOR_SIZE 4
+#define ETH_ABI_FRAME_MAX_HEAD_WORDS 64
+#define ETH_ABI_FRAME_MAX_TAIL_WORDS 128
+#define ETH_ABI_FRAME_MAX_PATCHES 64
+#define ETH_ABI_FRAME_MAX_STACK_SIZE 64
+#define ETH_ABI_FRAME_MAX_POOL_SIZE 64
 
 int s_mp_get_bit(const mp_int *a, int b);
 
-// ABI mode (encoding or decoding)
+// ABI mode enum (encoding or decoding)
 enum eth_abi_mode {
   ETH_ABI_ENCODE = 0,
   ETH_ABI_DECODE = 1
 };
 
-struct ethc_abi_dynamic_type_stack {
-  // stack elements
-  struct ethc_abi_dynamic_type *stack[ETH_ABI_DYNAMIC_TYPES];
-  // stack head
-  size_t head;
+// patch struct where dynamic data offets stored
+struct ethc_abi_patch {
+  size_t head_offset;
+  size_t tail_offset;
 };
 
-struct ethc_abi_dynamic_type {
-  // absolute location of the type (for backpatching)
-  size_t absloc;
-  // location of this type in parent type
-  size_t ploc;
-  // pointer to the parent type
-  struct ethc_abi_dynamic_type *ptype;
-  // pointer to the raw buffer
-  uint8_t rawbuf[ETH_ABI_DYNAMIC_TYPE_WORDS * ETH_ABI_WORD_SIZE];
-  // raw buffer offset
-  size_t offset;
-  // size of the type
-  size_t size;
+struct ethc_abi_frame {
+  // buffer for storing static elements
+  size_t head_offset;
+  uint8_t head[ETH_ABI_WORD_SIZE * ETH_ABI_FRAME_MAX_HEAD_WORDS];
+
+  // buffer for storing dynamic and nested data
+  size_t tail_offset;
+  uint8_t tail[ETH_ABI_WORD_SIZE * ETH_ABI_FRAME_MAX_TAIL_WORDS];
+
+  // buffer for dynamic data patches
+  size_t patch_offset;
+  struct ethc_abi_patch patches[ETH_ABI_FRAME_MAX_PATCHES];
+
+  // size of the tail, used on decode
+  size_t tail_size;
 };
 
 struct eth_abi {
   // ABI mode
   enum eth_abi_mode m;
-  // dynamic type pool
-  struct ethc_abi_dynamic_type typepool[ETH_ABI_DYNAMIC_TYPE_POOL_SIZE];
-  // dynamic type pool head
-  size_t head;
-  // stack for nested dynamic types
-  struct ethc_abi_dynamic_type_stack stack;
-  // list of dynamic types
-  struct ethc_abi_dynamic_type *types[ETH_ABI_DYNAMIC_TYPES];
-  // length of list of dynamic types
-  size_t typelen;
+
+  // dynamic data frame pool
+  struct ethc_abi_frame pool[ETH_ABI_FRAME_MAX_POOL_SIZE];
+  size_t pool_head;
+
+  // frame stack for nested elements
+  struct ethc_abi_frame *stack[ETH_ABI_FRAME_MAX_STACK_SIZE];
+  int stack_top;
+
+  // function selector
+  uint8_t func[4];
+  int func_set;
 };
 
 /*!
@@ -167,7 +172,7 @@ ETHC_EXPORT ETH_OP eth_abi_mpint(struct eth_abi *abi, mp_int *mpint);
  * @param[inout] addr Ponter to address to read/write the data from/to.
  * @return `1` on success, `-1` otherwise.
  */
-ETHC_EXPORT ETH_OP eth_abi_address(struct eth_abi *abi, char **addr);
+ETHC_EXPORT ETH_OP eth_abi_address(struct eth_abi *abi, char *addr);
 
 /*!
  * @brief Encodes/decodes 8 byte array.
@@ -276,7 +281,6 @@ ETHC_EXPORT ETH_OP eth_abi_array(struct eth_abi *abi, size_t *len);
  * @param[in] abi Target abi.
  */
 ETHC_EXPORT ETH_OP eth_abi_array_end(struct eth_abi *abi);
-
 
 #ifdef __cplusplus
 }
