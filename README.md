@@ -33,7 +33,6 @@ Most Ethereum libraries are made for high-level languages like JavaScript, Pytho
 | `eth_abi_string`   |
 | `eth_abi_call`     |
 | `eth_abi_array`    | 
-| `eth_abi_tuple`    |
 | `eth_abi_from_hex` |
 | `eth_abi_to_hex`   |
 
