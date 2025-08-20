@@ -3,25 +3,6 @@
 #include <tap.h>
 #include <assert.h>
 
-void print_formatted_hex(const char *hex_str, size_t len) {
-  size_t bytes = len / 2; // 2 hex characters per byte
-  size_t address = 0;
-
-  for (size_t i = 0; i < bytes; ++i) {
-    if (i % 32 == 0) {
-      if (i != 0) printf("\n");
-
-      printf("0x%02X: ", (unsigned int)address);
-      address += 0x20;
-    }
-
-    // Print two characters (one byte)
-    printf("%c%c", hex_str[i * 2], hex_str[i * 2 + 1]);
-  }
-
-  printf("\n");
-}
-
 void test_eth_abi_bool(void) {
   struct eth_abi abi0={0}, abi1={0};
   uint8_t b0=1, b1=0, b2, b3;
