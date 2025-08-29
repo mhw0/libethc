@@ -23,9 +23,13 @@ int eth_is_hex(const char *str, int len) {
 
   for (i = 0; i < len; i++) {
     ch = str[i];
-    if (((ch < 'A' || ch > 'F') && (ch < 'a' || ch > 'f')) &&
-        (ch < '0' || ch > '9'))
-      return 0;
+    if (ch < '0') return 0;           // < 48: Invalid
+    if (ch <= '9') continue;          // 48-57: Valid digits
+    if (ch < 'A') return 0;           // 58-64: Invalid gap  
+    if (ch <= 'F') continue;          // 65-70: Valid A-F
+    if (ch < 'a') return 0;           // 71-96: Invalid gap
+    if (ch <= 'f') continue;          // 97-102: Valid a-f
+    return 0;                         // > 102: Invalid
   }
 
   return 1;
