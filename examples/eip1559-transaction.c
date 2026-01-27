@@ -91,7 +91,7 @@ int main(void) {
 
   int tx_size = strlen(txn);
   int tx_prefix_size = strlen(tx_type_prefix_str);
-  char signed_tx[tx_size + tx_prefix_size];
+  char signed_tx[tx_size + tx_prefix_size + 1];
   sprintf(signed_tx, "%s%s", tx_type_prefix_str, txn);
 
   printf("EIP-1559 Signed transaction is:\n%s\n", signed_tx);
