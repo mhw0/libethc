@@ -337,7 +337,7 @@ ETH_OP eth_rlp_hex(struct eth_rlp *rlp, char **hex, int *len) {
       return op;
 
     if (hsize == 0) {
-      *hex = "0";
+      *hex = strdup("0");
     } else if ((hsize = (size_t)eth_hex_from_bytes(hex, buf, hsize)) <= 0) {
       return ETH_ERR_INVALID_ARGS;
     }
